@@ -9,6 +9,7 @@ using TaskManager.Application.Services;
 using TaskManager.Domain.Interfaces;
 using TaskManager.Infrastructure.Data;
 using TaskManager.Infrastructure.Repositories;
+using TaskManager.Infrastructure.Seeders;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -77,6 +78,12 @@ builder.Services.AddSwaggerGen(opt =>
 });
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    await DbSeeder.SeedAsync(context);
+}
 
 // Middlewares
 app.UseSwagger();
