@@ -1,5 +1,9 @@
-﻿namespace TaskManager.Domain.Entities
+﻿using System.Text.Json.Serialization;
+using TaskManager.Domain.Converters;
+
+namespace TaskManager.Domain.Entities
 {
+    [JsonConverter(typeof(TaskStatusConverter))]
     public enum TaskStatus
     {
         Pending = 0,
