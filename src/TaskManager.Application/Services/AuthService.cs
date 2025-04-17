@@ -25,7 +25,7 @@ namespace TaskManager.Application.Services
         {
             var userExists = await _userRepository.GetByEmailAsync(request.Email);
             if (userExists != null)
-                throw new Exception("E-mail já cadastrado");
+                throw new InvalidOperationException("E-mail já cadastrado");
 
             var user = new User
             {
@@ -43,7 +43,7 @@ namespace TaskManager.Application.Services
         {
             var user = await _userRepository.GetByEmailAsync(request.Email);
             if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
-                throw new Exception("Credenciais inválidas");
+                throw new InvalidOperationException("Credenciais inválidas");
 
             return new AuthResponse { Token = GenerateJwt(user) };
         }
@@ -52,11 +52,14 @@ namespace TaskManager.Application.Services
         {
             var claims = new[]
             {
-            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-            new Claim(ClaimTypes.Email, user.Email)
-        };
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new Claim(ClaimTypes.Email, user.Email)
+            };
 
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
+            var jwtKey = _configuration["Jwt:Key"]
+                ?? throw new InvalidOperationException("JWT Key está ausente no appsettings.");
+
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var token = new JwtSecurityToken(

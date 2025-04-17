@@ -60,8 +60,19 @@ namespace TaskManager.Api.Endpoints
                 return Results.NoContent();
             });
 
-            group.MapDelete("/{id:guid}", async (Guid id, ITaskService service) =>
+            group.MapDelete("/{id:guid}", async (
+                Guid id,
+                ClaimsPrincipal user,
+                ITaskService service) =>
             {
+                var task = await service.GetByIdAsync(id);
+                if (task is null)
+                    return Results.NotFound(new { error = "Tarefa não encontrada." });
+
+                var userId = Guid.Parse(user.FindFirstValue(ClaimTypes.NameIdentifier)!);
+                if (task.Project?.UserId != userId)
+                    return Results.Forbid();
+
                 await service.DeleteAsync(id);
                 return Results.NoContent();
             });

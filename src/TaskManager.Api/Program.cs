@@ -9,7 +9,6 @@ using TaskManager.Application.Services;
 using TaskManager.Domain.Interfaces;
 using TaskManager.Infrastructure.Data;
 using TaskManager.Infrastructure.Repositories;
-using TaskManager.Infrastructure.Seeders;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,9 +25,14 @@ builder.Services.AddScoped<IProjectService, ProjectService>();
 builder.Services.AddScoped<ITaskService, TaskService>();
 
 // Auth Config
-var jwtKey = builder.Configuration["Jwt:Key"];
-var jwtIssuer = builder.Configuration["Jwt:Issuer"];
-var jwtAudience = builder.Configuration["Jwt:Audience"];
+var jwtKey = builder.Configuration["Jwt:Key"]
+    ?? throw new InvalidOperationException("JWT Key não encontrada na configuração.");
+
+var jwtIssuer = builder.Configuration["Jwt:Issuer"]
+    ?? throw new InvalidOperationException("JWT Issuer não encontrado na configuração.");
+
+var jwtAudience = builder.Configuration["Jwt:Audience"]
+    ?? throw new InvalidOperationException("JWT Audience não encontrado na configuração.");
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>

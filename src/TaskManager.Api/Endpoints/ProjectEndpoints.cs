@@ -57,8 +57,19 @@ namespace TaskManager.Api.Endpoints
                 return Results.NoContent();
             });
 
-            group.MapDelete("/{id:guid}", async (Guid id, IProjectService service) =>
+            group.MapDelete("/{id:guid}", async (
+                Guid id,
+                ClaimsPrincipal user,
+                IProjectService service) =>
             {
+                var project = await service.GetByIdAsync(id);
+                if (project is null)
+                    return Results.NotFound(new { error = "Projeto não encontrado." });
+
+                var userId = Guid.Parse(user.FindFirstValue(ClaimTypes.NameIdentifier)!);
+                if (project.UserId != userId)
+                    return Results.Forbid();
+
                 await service.DeleteAsync(id);
                 return Results.NoContent();
             });

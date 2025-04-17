@@ -18,13 +18,15 @@ namespace TaskManager.Infrastructure.Repositories
         {
             return await _context.Tasks
                 .Include(t => t.Project)
-                .Where(t => t.Project.UserId == userId)
+                .Where(t => t.Project != null && t.Project.UserId == userId)
                 .ToListAsync();
         }
 
         public async Task<TaskItem?> GetByIdAsync(Guid id)
         {
-            return await _context.Tasks.FindAsync(id);
+            return await _context.Tasks
+                .Include(t => t.Project)
+                .FirstOrDefaultAsync(t => t.Id == id);
         }
 
         public async Task AddAsync(TaskItem task)

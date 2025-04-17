@@ -1,75 +1,129 @@
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestPlatform.TestHost;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using TaskManager.Application.Services;
 using TaskManager.Domain.Entities;
-
+using TaskManager.Infrastructure.Data;
+using TaskManager.Infrastructure.Repositories;
 using DomainTaskStatus = TaskManager.Domain.Entities.TaskStatus;
 
 namespace TaskManager.IntegrationTests
 {
-    public class TaskManagerIntegrationTests : IClassFixture<WebApplicationFactory<Program>>
+    public class TaskManagerIntegrationTests : IClassFixture<WebApplicationFactory<Program>>, IDisposable
     {
         private readonly HttpClient _client;
+        private readonly AppDbContext _context;
+        private Guid _projectId;
+        private Guid _userId;
+        private bool _disposed;
 
         public TaskManagerIntegrationTests(WebApplicationFactory<Program> factory)
         {
             _client = factory.CreateClient();
+
+            var scopeFactory = factory.Services.GetRequiredService<IServiceScopeFactory>();
+            var scope = scopeFactory.CreateScope();
+            _context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         }
 
         [Fact]
-        public async Task FullUserProjectTaskFlow_Should_Succeed()
+        public async Task DeletingProject_ShouldCascadeDeleteTasks()
         {
-            // Registro
-            var registerResponse = await _client.PostAsJsonAsync("/api/auth/register", new
+            var user = new User
             {
-                name = "Bruno",
-                email = "integ@test.com",
-                password = "123456"
-            });
-            var registerToken = await registerResponse.Content.ReadFromJsonAsync<AuthResponse>();
+                Name = "Seed User",
+                Email = "cascade@test.com",
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword("123456")
+            };
+            _context.Users.Add(user);
+            await _context.SaveChangesAsync();
+            _userId = user.Id;
 
-            // Login
-            var loginResponse = await _client.PostAsJsonAsync("/api/auth/login", new
+            var config = new ConfigurationBuilder()
+                .AddInMemoryCollection(new Dictionary<string, string?>
+                {
+                    ["Jwt:Key"] = "super-secret-test-key",
+                    ["Jwt:Issuer"] = "TaskManagerAPI",
+                    ["Jwt:Audience"] = "TaskManagerUsers"
+                })
+                .Build();
+
+            var authService = new AuthService(new UserRepository(_context), config);
+            var loginToken = await authService.RegisterAsync(new Application.DTOs.RegisterRequest
             {
-                email = "integ@test.com",
-                password = "123456"
+                Name = user.Name,
+                Email = user.Email,
+                Password = "123456"
             });
-            var loginToken = await loginResponse.Content.ReadFromJsonAsync<AuthResponse>();
 
-            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", loginToken!.Token);
+            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", loginToken.Token);
 
-            // Criar Projeto
-            var createProject = await _client.PostAsJsonAsync("/api/projects", new
+            var createProjectResponse = await _client.PostAsJsonAsync("/api/projects", new
             {
-                name = "Projeto Integração",
-                description = "Testando fluxo completo"
+                name = "Projeto Cascade",
+                description = "Será deletado"
             });
-            var project = await createProject.Content.ReadFromJsonAsync<Project>();
+            var project = await createProjectResponse.Content.ReadFromJsonAsync<Project>();
+            _projectId = project!.Id;
 
-            // Criar Tarefa
-            var createTask = await _client.PostAsJsonAsync("/api/tasks", new
+            for (int i = 0; i < 2; i++)
             {
-                title = "Criar testes",
-                description = "Testes de integração",
-                dueDate = DateTime.UtcNow.AddDays(5),
-                status = DomainTaskStatus.Pending,
-                projectId = project!.Id
-            });
-            createTask.EnsureSuccessStatusCode();
+                var createTaskResponse = await _client.PostAsJsonAsync("/api/tasks", new
+                {
+                    title = $"Tarefa {i + 1}",
+                    description = "Para deletar em cascata",
+                    dueDate = DateTime.UtcNow.AddDays(1),
+                    status = DomainTaskStatus.Pending,
+                    projectId = _projectId
+                });
+                createTaskResponse.EnsureSuccessStatusCode();
+            }
 
-            // Validar listagem
-            var tasks = await _client.GetAsync("/api/tasks");
-            tasks.EnsureSuccessStatusCode();
+            var tasksBeforeDelete = await _context.Tasks.Where(t => t.ProjectId == _projectId).ToListAsync();
+            Assert.Equal(2, tasksBeforeDelete.Count);
 
-            // Remover projeto
-            var deleteProject = await _client.DeleteAsync($"/api/projects/{project.Id}");
-            deleteProject.EnsureSuccessStatusCode();
+            var deleteResponse = await _client.DeleteAsync($"/api/projects/{_projectId}");
+            deleteResponse.EnsureSuccessStatusCode();
+
+            var tasksAfterDelete = await _context.Tasks.Where(t => t.ProjectId == _projectId).ToListAsync();
+            Assert.Empty(tasksAfterDelete);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (_disposed || !disposing)
+                return;
+
+            if (_userId != Guid.Empty)
+            {
+                var user = _context.Users
+                    .Include(u => u.Projects)
+                    .ThenInclude(p => p.Tasks)
+                    .FirstOrDefault(u => u.Id == _userId);
+
+                if (user is not null)
+                {
+                    _context.Users.Remove(user);
+                    _context.SaveChanges();
+                }
+            }
+
+            _disposed = true;
+        }
+
+        public void Dispose()
+        {
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
         }
     }
 
     public class AuthResponse
     {
-        public string Token { get; set; }
+        public required string Token { get; set; }
     }
 }
