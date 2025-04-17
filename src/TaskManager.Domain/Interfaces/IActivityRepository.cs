@@ -1,8 +1,8 @@
 ﻿using TaskManager.Domain.Entities;
 
-namespace TaskManager.Application.Interfaces
+namespace TaskManager.Domain.Interfaces
 {
-    public interface ITaskService
+    public interface IActivityRepository
     {
         Task<IEnumerable<Activity>> GetAllAsync(Guid userId);
         Task<Activity?> GetByIdAsync(Guid id);

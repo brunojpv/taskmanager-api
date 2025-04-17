@@ -1,11 +1,11 @@
 ﻿using TaskManager.Domain.Entities;
-using DomainTaskStatus = TaskManager.Domain.Entities.TaskStatus;
+using DomainTaskStatus = TaskManager.Domain.Enums.ActivityStatus;
 
 namespace TaskManager.Infrastructure.Data
 {
     public static class DbSeeder
     {
-        public static async Task SeedAsync(AppDbContext context)
+        public static async System.Threading.Tasks.Task SeedAsync(AppDbContext context)
         {
             if (!context.Users.Any())
             {
@@ -23,7 +23,7 @@ namespace TaskManager.Infrastructure.Data
                     User = user
                 };
 
-                var tasks = new List<TaskItem>
+                var tasks = new List<Task>
             {
                 new TaskItem
                 {

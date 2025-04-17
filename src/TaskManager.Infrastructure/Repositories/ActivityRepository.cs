@@ -5,16 +5,16 @@ using TaskManager.Infrastructure.Data;
 
 namespace TaskManager.Infrastructure.Repositories
 {
-    public class TaskRepository : ITaskRepository
+    public class ActivityRepository : IActivityRepository
     {
         private readonly AppDbContext _context;
 
-        public TaskRepository(AppDbContext context)
+        public ActivityRepository(AppDbContext context)
         {
             _context = context;
         }
 
-        public async Task<IEnumerable<TaskItem>> GetAllAsync(Guid userId)
+        public async Task<IEnumerable<Activity>> GetAllAsync(Guid userId)
         {
             return await _context.Tasks
                 .Include(t => t.Project)
@@ -22,20 +22,20 @@ namespace TaskManager.Infrastructure.Repositories
                 .ToListAsync();
         }
 
-        public async Task<TaskItem?> GetByIdAsync(Guid id)
+        public async Task<Activity?> GetByIdAsync(Guid id)
         {
             return await _context.Tasks
                 .Include(t => t.Project)
                 .FirstOrDefaultAsync(t => t.Id == id);
         }
 
-        public async Task AddAsync(TaskItem task)
+        public async Task AddAsync(Activity task)
         {
             _context.Tasks.Add(task);
             await _context.SaveChangesAsync();
         }
 
-        public async Task UpdateAsync(TaskItem task)
+        public async Task UpdateAsync(Activity task)
         {
             _context.Tasks.Update(task);
             await _context.SaveChangesAsync();

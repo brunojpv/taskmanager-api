@@ -9,11 +9,11 @@ using TaskManager.Application.Services;
 using TaskManager.Domain.Entities;
 using TaskManager.Infrastructure.Data;
 using TaskManager.Infrastructure.Repositories;
-using DomainTaskStatus = TaskManager.Domain.Entities.TaskStatus;
+using DomainTaskStatus = TaskManager.Domain.Enums.ActivityStatus;
 
 namespace TaskManager.IntegrationTests
 {
-    public class TaskManagerIntegrationTests : IClassFixture<WebApplicationFactory<Program>>, IDisposable
+    public class ActivityManagerIntegrationTests : IClassFixture<WebApplicationFactory<Program>>, IDisposable
     {
         private readonly HttpClient _client;
         private readonly AppDbContext _context;
@@ -21,7 +21,7 @@ namespace TaskManager.IntegrationTests
         private Guid _userId;
         private bool _disposed;
 
-        public TaskManagerIntegrationTests(WebApplicationFactory<Program> factory)
+        public ActivityManagerIntegrationTests(WebApplicationFactory<Program> factory)
         {
             _client = factory.CreateClient();
 
@@ -31,7 +31,7 @@ namespace TaskManager.IntegrationTests
         }
 
         [Fact]
-        public async Task DeletingProject_ShouldCascadeDeleteTasks()
+        public async System.Threading.Tasks.Task DeletingProject_ShouldCascadeDeleteTasks()
         {
             var user = new User
             {

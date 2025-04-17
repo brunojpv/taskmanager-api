@@ -10,6 +10,6 @@
         public Guid UserId { get; set; }
         public User? User { get; set; }
 
-        public ICollection<TaskItem> Tasks { get; set; } = new List<TaskItem>();
+        public ICollection<Activity> Tasks { get; set; } = new List<Activity>();
     }
 }

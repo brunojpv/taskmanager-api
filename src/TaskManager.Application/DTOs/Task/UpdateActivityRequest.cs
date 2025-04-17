@@ -1,8 +1,8 @@
-﻿using DomainTaskStatus = TaskManager.Domain.Entities.TaskStatus;
+﻿using DomainTaskStatus = TaskManager.Domain.Enums.ActivityStatus;
 
 namespace TaskManager.Application.DTOs.Task
 {
-    public class UpdateTaskRequest
+    public class UpdateActivityRequest
     {
         public required Guid Id { get; set; }
         public required string Title { get; set; }

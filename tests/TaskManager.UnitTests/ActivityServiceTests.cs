@@ -3,23 +3,23 @@ using TaskManager.Application.Services;
 using TaskManager.Domain.Entities;
 using TaskManager.Domain.Interfaces;
 
-using DomainTaskStatus = TaskManager.Domain.Entities.TaskStatus;
+using DomainTaskStatus = TaskManager.Domain.Enums.ActivityStatus;
 
 namespace TaskManager.UnitTests
 {
     public class TaskServiceTests
     {
-        private readonly TaskService _service;
-        private readonly Mock<ITaskRepository> _repositoryMock;
+        private readonly ActivityService _service;
+        private readonly Mock<IActivityRepository> _repositoryMock;
 
         public TaskServiceTests()
         {
-            _repositoryMock = new Mock<ITaskRepository>();
-            _service = new TaskService(_repositoryMock.Object);
+            _repositoryMock = new Mock<IActivityRepository>();
+            _service = new ActivityService(_repositoryMock.Object);
         }
 
         [Fact]
-        public async Task AddAsync_Should_Call_Repository()
+        public async System.Threading.Tasks.Task AddAsync_Should_Call_Repository()
         {
             var task = new TaskItem
             {
@@ -36,10 +36,10 @@ namespace TaskManager.UnitTests
         }
 
         [Fact]
-        public async Task GetAllAsync_Should_Return_Tasks()
+        public async System.Threading.Tasks.Task GetAllAsync_Should_Return_Tasks()
         {
             var userId = Guid.NewGuid();
-            _repositoryMock.Setup(r => r.GetAllAsync(userId)).ReturnsAsync(new List<TaskItem>());
+            _repositoryMock.Setup(r => r.GetAllAsync(userId)).ReturnsAsync(new List<Task>());
 
             var result = await _service.GetAllAsync(userId);
 
@@ -48,7 +48,7 @@ namespace TaskManager.UnitTests
         }
 
         [Fact]
-        public async Task GetByIdAsync_Should_Return_Task()
+        public async System.Threading.Tasks.Task GetByIdAsync_Should_Return_Task()
         {
             var taskId = Guid.NewGuid();
             var task = new TaskItem
@@ -70,7 +70,7 @@ namespace TaskManager.UnitTests
         }
 
         [Fact]
-        public async Task DeleteAsync_Should_Call_Repository()
+        public async System.Threading.Tasks.Task DeleteAsync_Should_Call_Repository()
         {
             var taskId = Guid.NewGuid();
 

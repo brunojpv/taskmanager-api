@@ -5,7 +5,7 @@ using TaskManager.Domain.Entities;
 
 namespace TaskManager.Api.Endpoints
 {
-    public static class TaskEndpoints
+    public static class ActivityEndpoints
     {
         public static void MapTaskEndpoints(this IEndpointRouteBuilder app)
         {
@@ -25,7 +25,7 @@ namespace TaskManager.Api.Endpoints
             });
 
             group.MapPost("/", async (
-                CreateTaskRequest request,
+                CreateActivityRequest request,
                 ITaskService service) =>
             {
                 var task = new TaskItem
@@ -42,7 +42,7 @@ namespace TaskManager.Api.Endpoints
 
             group.MapPut("/{id:guid}", async (
                 Guid id,
-                UpdateTaskRequest request,
+                UpdateActivityRequest request,
                 ITaskService service) =>
             {
                 if (id != request.Id) return Results.BadRequest();

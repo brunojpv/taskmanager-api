@@ -9,7 +9,7 @@ namespace TaskManager.Infrastructure.Data
 
         public DbSet<User> Users => Set<User>();
         public DbSet<Project> Projects => Set<Project>();
-        public DbSet<TaskItem> Tasks => Set<TaskItem>();
+        public DbSet<Domain.Entities.Activity> Tasks => base.Set<Domain.Entities.Activity>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -21,7 +21,7 @@ namespace TaskManager.Infrastructure.Data
                 .HasIndex(u => u.Email)
                 .IsUnique();
 
-            modelBuilder.Entity<TaskItem>()
+            modelBuilder.Entity<Domain.Entities.Activity>()
                 .HasOne(t => t.Project)
                 .WithMany(p => p.Tasks)
                 .HasForeignKey(t => t.ProjectId)
