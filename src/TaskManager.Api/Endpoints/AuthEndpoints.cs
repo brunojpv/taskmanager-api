@@ -7,9 +7,10 @@ namespace TaskManager.Api.Endpoints
     {
         public static void MapAuthEndpoints(this IEndpointRouteBuilder app)
         {
-            app.MapPost("/api/auth/register", async (
-                RegisterDto request,
-                IAuthService authService) =>
+            var group = app.MapGroup("/api/auth")
+                .WithTags("Autenticação");
+
+            group.MapPost("/register", async (RegisterDto request, IAuthService authService) =>
             {
                 try
                 {
@@ -20,11 +21,14 @@ namespace TaskManager.Api.Endpoints
                 {
                     return Results.BadRequest(new { error = ex.Message });
                 }
-            });
+            })
+            .WithName("RegisterUser")
+            .WithSummary("Registro de novo usuário")
+            .WithDescription("Cria um novo usuário na plataforma com os dados fornecidos.")
+            .Produces(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status400BadRequest);
 
-            app.MapPost("/api/auth/login", async (
-                LoginDto request,
-                IAuthService authService) =>
+            group.MapPost("/login", async (LoginDto request, IAuthService authService) =>
             {
                 try
                 {
@@ -35,7 +39,12 @@ namespace TaskManager.Api.Endpoints
                 {
                     return Results.Json(new { error = ex.Message }, statusCode: StatusCodes.Status401Unauthorized);
                 }
-            });
+            })
+            .WithName("LoginUser")
+            .WithSummary("Login do usuário")
+            .WithDescription("Realiza autenticação de um usuário e retorna um token JWT se as credenciais forem válidas.")
+            .Produces(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status401Unauthorized);
         }
     }
 }

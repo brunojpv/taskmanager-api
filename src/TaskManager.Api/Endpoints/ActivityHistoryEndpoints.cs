@@ -14,7 +14,11 @@ namespace TaskManager.Api.Endpoints
             {
                 var history = await service.GetHistoryByActivityIdAsync(activityId);
                 return Results.Ok(history);
-            });
+            })
+            .WithName("GetActivityHistory")
+            .WithSummary("Lista o histórico de alterações da atividade")
+            .WithDescription("Retorna todas as alterações registradas em uma atividade específica.")
+            .Produces(StatusCodes.Status200OK);
         }
     }
 }

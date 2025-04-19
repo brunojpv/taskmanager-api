@@ -9,8 +9,8 @@ namespace TaskManager.Api.Endpoints
         public static void MapReportEndpoints(this IEndpointRouteBuilder app)
         {
             var group = app.MapGroup("/api/reports")
-                .RequireAuthorization()
-                .WithTags("Relatórios");
+                .WithTags("Relatórios")
+                .RequireAuthorization();
 
             group.MapGet("/performance", async (ClaimsPrincipal user, IReportService reportService) =>
             {

@@ -21,13 +21,22 @@ namespace TaskManager.Api.Endpoints
                 dto.ActivityId = activityId;
                 await commentService.AddCommentAsync(Guid.Parse(userId), dto);
                 return Results.NoContent();
-            });
+            })
+            .WithName("AddCommentToActivity")
+            .WithSummary("Adiciona um comentário a uma tarefa")
+            .WithDescription("Permite que um usuário com permissão adicione um comentário a uma tarefa específica.")
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces(StatusCodes.Status401Unauthorized);
 
             group.MapGet("/", async (Guid activityId, IActivityCommentService commentService) =>
             {
-                List<ActivityComment> comments = await commentService.GetCommentsByActivityIdAsync(activityId);
+                var comments = await commentService.GetCommentsByActivityIdAsync(activityId);
                 return Results.Ok(comments);
-            });
+            })
+            .WithName("GetCommentsByActivity")
+            .WithSummary("Lista os comentários de uma tarefa")
+            .WithDescription("Retorna todos os comentários associados a uma tarefa específica.")
+            .Produces<List<ActivityComment>>(StatusCodes.Status200OK);
         }
     }
 }
