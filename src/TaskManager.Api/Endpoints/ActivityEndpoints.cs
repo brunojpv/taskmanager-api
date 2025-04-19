@@ -1,76 +1,49 @@
 ﻿using System.Security.Claims;
-using TaskManager.Application.DTOs.Task;
+using TaskManager.Application.DTOs.Activity;
 using TaskManager.Application.Interfaces;
-using TaskManager.Domain.Entities;
 
 namespace TaskManager.Api.Endpoints
 {
     public static class ActivityEndpoints
     {
-        public static void MapTaskEndpoints(this IEndpointRouteBuilder app)
+        public static void MapActivityEndpoints(this IEndpointRouteBuilder app)
         {
-            var group = app.MapGroup("/api/tasks").RequireAuthorization();
+            var group = app.MapGroup("/api/activity").RequireAuthorization();
 
-            group.MapGet("/", async (ClaimsPrincipal user, ITaskService service) =>
+            group.MapGet("/", async (ClaimsPrincipal user, IActivityService service) =>
             {
-                var userId = Guid.Parse(user.FindFirstValue(System.Security.Claims.ClaimTypes.NameIdentifier)!);
+                var userId = Guid.Parse(user.FindFirstValue(ClaimTypes.NameIdentifier)!);
                 var result = await service.GetAllAsync(userId);
                 return Results.Ok(result);
             });
 
-            group.MapGet("/{id:guid}", async (Guid id, ITaskService service) =>
+            group.MapGet("/{id:guid}", async (Guid id, IActivityService service) =>
             {
                 var task = await service.GetByIdAsync(id);
                 return task is null ? Results.NotFound() : Results.Ok(task);
             });
 
-            group.MapPost("/", async (
-                CreateActivityRequest request,
-                ITaskService service) =>
+            group.MapPost("/", async (CreateActivityDto dto, IActivityService service) =>
             {
-                var task = new TaskItem
-                {
-                    Title = request.Title,
-                    Description = request.Description,
-                    DueDate = request.DueDate,
-                    Status = request.Status,
-                    ProjectId = request.ProjectId
-                };
-                await service.AddAsync(task);
-                return Results.Created($"/api/tasks/{task.Id}", task);
+                var createdActivity = await service.CreateActivityAsync(dto);
+                return Results.Created($"/api/activity/{createdActivity.Id}", createdActivity);
             });
 
-            group.MapPut("/{id:guid}", async (
-                Guid id,
-                UpdateActivityRequest request,
-                ITaskService service) =>
+            group.MapPut("/{id:guid}", async (Guid id, UpdateActivityDto dto, ClaimsPrincipal user, IActivityService service) =>
             {
-                if (id != request.Id) return Results.BadRequest();
-
-                var task = new TaskItem
-                {
-                    Id = request.Id,
-                    Title = request.Title,
-                    Description = request.Description,
-                    DueDate = request.DueDate,
-                    Status = request.Status,
-                    ProjectId = request.ProjectId
-                };
-                await service.UpdateAsync(task);
+                var userId = Guid.Parse(user.FindFirstValue(ClaimTypes.NameIdentifier)!);
+                await service.UpdateActivityAsync(id, dto, userId);
                 return Results.NoContent();
             });
 
-            group.MapDelete("/{id:guid}", async (
-                Guid id,
-                ClaimsPrincipal user,
-                ITaskService service) =>
+            group.MapDelete("/{id:guid}", async (Guid id, ClaimsPrincipal user, IActivityService service) =>
             {
-                var task = await service.GetByIdAsync(id);
-                if (task is null)
+                var activity = await service.GetByIdAsync(id);
+                if (activity is null)
                     return Results.NotFound(new { error = "Tarefa não encontrada." });
 
                 var userId = Guid.Parse(user.FindFirstValue(ClaimTypes.NameIdentifier)!);
-                if (task.Project?.UserId != userId)
+                if (activity.Project?.UserId != userId)
                     return Results.Forbid();
 
                 await service.DeleteAsync(id);

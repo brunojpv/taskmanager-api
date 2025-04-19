@@ -1,6 +1,6 @@
-﻿namespace TaskManager.Application.DTOs
+﻿namespace TaskManager.Application.DTOs.User
 {
-    public class LoginRequest
+    public class LoginDto
     {
         public required string Email { get; set; }
         public required string Password { get; set; }

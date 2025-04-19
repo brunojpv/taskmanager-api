@@ -9,31 +9,28 @@ namespace TaskManager.Infrastructure.Data
 
         public DbSet<User> Users => Set<User>();
         public DbSet<Project> Projects => Set<Project>();
-        public DbSet<Domain.Entities.Activity> Tasks => base.Set<Domain.Entities.Activity>();
+        public DbSet<Activity> Activities => Set<Activity>();
+        public DbSet<ActivityHistory> ActivityHistories => Set<ActivityHistory>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+            modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
+        }
 
-            modelBuilder.Entity<User>().HasIndex(u => u.Email).IsUnique();
+        public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+        {
+            var entries = ChangeTracker
+                .Entries()
+                .Where(e => e.Entity is BaseEntity &&
+                    (e.State == EntityState.Added || e.State == EntityState.Modified));
 
-            modelBuilder.Entity<User>()
-                .HasIndex(u => u.Email)
-                .IsUnique();
+            foreach (var entityEntry in entries)
+            {
+                ((BaseEntity)entityEntry.Entity).SetUpdated();
+            }
 
-            modelBuilder.Entity<Domain.Entities.Activity>()
-                .HasOne(t => t.Project)
-                .WithMany(p => p.Tasks)
-                .HasForeignKey(t => t.ProjectId)
-                .IsRequired()
-                .OnDelete(DeleteBehavior.Cascade);
-
-            modelBuilder.Entity<Project>()
-                .HasOne(p => p.User)
-                .WithMany(u => u.Projects)
-                .HasForeignKey(p => p.UserId)
-                .IsRequired()
-                .OnDelete(DeleteBehavior.Cascade);
+            return base.SaveChangesAsync(cancellationToken);
         }
     }
 }

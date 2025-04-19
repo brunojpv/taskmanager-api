@@ -16,7 +16,7 @@ namespace TaskManager.Infrastructure.Repositories
 
         public async Task<IEnumerable<Activity>> GetAllAsync(Guid userId)
         {
-            return await _context.Tasks
+            return await _context.Activities
                 .Include(t => t.Project)
                 .Where(t => t.Project != null && t.Project.UserId == userId)
                 .ToListAsync();
@@ -24,29 +24,29 @@ namespace TaskManager.Infrastructure.Repositories
 
         public async Task<Activity?> GetByIdAsync(Guid id)
         {
-            return await _context.Tasks
+            return await _context.Activities
                 .Include(t => t.Project)
                 .FirstOrDefaultAsync(t => t.Id == id);
         }
 
         public async Task AddAsync(Activity task)
         {
-            _context.Tasks.Add(task);
+            _context.Activities.Add(task);
             await _context.SaveChangesAsync();
         }
 
         public async Task UpdateAsync(Activity task)
         {
-            _context.Tasks.Update(task);
+            _context.Activities.Update(task);
             await _context.SaveChangesAsync();
         }
 
         public async Task DeleteAsync(Guid id)
         {
-            var task = await _context.Tasks.FindAsync(id);
+            var task = await _context.Activities.FindAsync(id);
             if (task is not null)
             {
-                _context.Tasks.Remove(task);
+                _context.Activities.Remove(task);
                 await _context.SaveChangesAsync();
             }
         }

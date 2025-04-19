@@ -1,4 +1,4 @@
-﻿using TaskManager.Application.DTOs;
+﻿using TaskManager.Application.DTOs.User;
 using TaskManager.Application.Interfaces;
 
 namespace TaskManager.Api.Endpoints
@@ -8,7 +8,7 @@ namespace TaskManager.Api.Endpoints
         public static void MapAuthEndpoints(this IEndpointRouteBuilder app)
         {
             app.MapPost("/api/auth/register", async (
-                RegisterRequest request,
+                RegisterDto request,
                 IAuthService authService) =>
             {
                 try
@@ -23,7 +23,7 @@ namespace TaskManager.Api.Endpoints
             });
 
             app.MapPost("/api/auth/login", async (
-                LoginRequest request,
+                LoginDto request,
                 IAuthService authService) =>
             {
                 try

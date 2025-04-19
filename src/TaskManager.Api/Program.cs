@@ -17,12 +17,14 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Application/Domain services
-builder.Services.AddScoped<IUserRepository, UserRepository>();
-builder.Services.AddScoped<IProjectRepository, ProjectRepository>();
-builder.Services.AddScoped<IActivityRepository, ActivityRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IProjectService, ProjectService>();
-builder.Services.AddScoped<ITaskService, ActivityService>();
+builder.Services.AddScoped<IProjectRepository, ProjectRepository>();
+builder.Services.AddScoped<IActivityService, ActivityService>();
+builder.Services.AddScoped<IActivityRepository, ActivityRepository>();
+builder.Services.AddScoped<IActivityHistoryService, ActivityHistoryService>();
+builder.Services.AddScoped<IActivityHistoryRepository, ActivityHistoryRepository>();
 
 // Auth Config
 var jwtKey = builder.Configuration["Jwt:Key"]
@@ -85,8 +87,8 @@ var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
 {
-    var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    await DbSeeder.SeedAsync(context);
+    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    await DbSeeder.SeedAsync(dbContext);
 }
 
 // Middlewares
@@ -99,6 +101,7 @@ app.UseAuthorization();
 // Endpoint Mappings
 app.MapAuthEndpoints();
 app.MapProjectEndpoints();
-app.MapTaskEndpoints();
+app.MapActivityEndpoints();
+app.MapActivityHistoryEndpoints();
 
 await app.RunAsync();

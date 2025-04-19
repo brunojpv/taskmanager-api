@@ -1,7 +1,6 @@
 ﻿using System.Security.Claims;
 using TaskManager.Application.DTOs.Project;
 using TaskManager.Application.Interfaces;
-using TaskManager.Domain.Entities;
 
 namespace TaskManager.Api.Endpoints
 {
@@ -24,53 +23,24 @@ namespace TaskManager.Api.Endpoints
                 return project is null ? Results.NotFound() : Results.Ok(project);
             });
 
-            group.MapPost("/", async (
-                ClaimsPrincipal user,
-                CreateProjectRequest request,
-                IProjectService service) =>
+            group.MapPost("/", async (ClaimsPrincipal user, CreateProjectDto dto, IProjectService service) =>
             {
                 var userId = Guid.Parse(user.FindFirstValue(ClaimTypes.NameIdentifier)!);
-                var project = new Project
-                {
-                    Name = request.Name,
-                    Description = request.Description,
-                    UserId = userId
-                };
-                await service.AddAsync(project);
-                return Results.Created($"/api/projects/{project.Id}", project);
+                var createdProject = await service.CreateActivityAsync(dto, userId);
+                return Results.Created($"/api/projects/{createdProject.Id}", createdProject);
             });
 
-            group.MapPut("/{id:guid}", async (
-                Guid id,
-                UpdateProjectRequest request,
-                IProjectService service) =>
+            group.MapPut("/{id:guid}", async (Guid id, ClaimsPrincipal user, UpdateProjectDto dto, IProjectService service) =>
             {
-                if (id != request.Id) return Results.BadRequest();
-
-                var project = new Project
-                {
-                    Id = request.Id,
-                    Name = request.Name,
-                    Description = request.Description
-                };
-                await service.UpdateAsync(project);
+                var userId = Guid.Parse(user.FindFirstValue(ClaimTypes.NameIdentifier)!);
+                await service.UpdateProjectAsync(id, dto, userId);
                 return Results.NoContent();
             });
 
-            group.MapDelete("/{id:guid}", async (
-                Guid id,
-                ClaimsPrincipal user,
-                IProjectService service) =>
+            group.MapDelete("/{id:guid}", async (Guid id, ClaimsPrincipal user, IProjectService service) =>
             {
-                var project = await service.GetByIdAsync(id);
-                if (project is null)
-                    return Results.NotFound(new { error = "Projeto não encontrado." });
-
                 var userId = Guid.Parse(user.FindFirstValue(ClaimTypes.NameIdentifier)!);
-                if (project.UserId != userId)
-                    return Results.Forbid();
-
-                await service.DeleteAsync(id);
+                await service.DeleteProjectAsync(id, userId);
                 return Results.NoContent();
             });
         }

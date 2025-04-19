@@ -2,34 +2,38 @@
 
 namespace TaskManager.Domain.Entities
 {
-    public class Activity
+    public class Activity : BaseEntity
     {
-        public Guid Id { get; private set; }
         public string Title { get; private set; }
         public string Description { get; private set; }
         public DateTime DueDate { get; private set; }
         public ActivityStatus Status { get; set; }
         public ActivityPriority Priority { get; private set; }
-
         public Guid ProjectId { get; set; }
+
         public Project? Project { get; set; }
 
-        public Activity(string title, string description, DateTime dueDate, ActivityPriority priority)
+        public ICollection<ActivityHistory> ActivityHistories { get; private set; } = new List<ActivityHistory>();
+
+        public Activity(string title, string description, DateTime dueDate, ActivityPriority priority, Guid projectId)
         {
-            Id = Guid.NewGuid();
             Title = title;
             Description = description;
             DueDate = dueDate;
             Priority = priority;
             Status = ActivityStatus.Pending;
+            ProjectId = projectId;
         }
 
-        public void UpdateDetails(string title, string description, DateTime dueDate, ActivityStatus status)
+        protected Activity() { }
+
+        public void UpdateDetails(string title, string description, DateTime dueDate, ActivityStatus status, Guid projectId)
         {
             Title = title;
             Description = description;
             DueDate = dueDate;
             Status = status;
+            ProjectId = projectId;
         }
     }
 }

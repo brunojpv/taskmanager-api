@@ -1,10 +1,10 @@
-﻿using TaskManager.Application.DTOs;
+﻿using TaskManager.Application.DTOs.User;
 
 namespace TaskManager.Application.Interfaces
 {
     public interface IAuthService
     {
-        Task<AuthResponse> RegisterAsync(RegisterRequest request);
-        Task<AuthResponse> LoginAsync(LoginRequest request);
+        Task<AuthDto> RegisterAsync(RegisterDto request);
+        Task<AuthDto> LoginAsync(LoginDto request);
     }
 }

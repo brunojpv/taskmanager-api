@@ -1,6 +1,6 @@
-﻿namespace TaskManager.Application.DTOs
+﻿namespace TaskManager.Application.DTOs.User
 {
-    public class RegisterRequest
+    public class RegisterDto
     {
         public required string Name { get; set; }
         public required string Email { get; set; }

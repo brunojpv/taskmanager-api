@@ -1,4 +1,5 @@
-﻿using TaskManager.Domain.Entities;
+﻿using TaskManager.Application.DTOs.Project;
+using TaskManager.Domain.Entities;
 
 namespace TaskManager.Application.Interfaces
 {
@@ -9,5 +10,8 @@ namespace TaskManager.Application.Interfaces
         Task AddAsync(Project project);
         Task UpdateAsync(Project project);
         Task DeleteAsync(Guid id);
+        Task<Project> CreateActivityAsync(CreateProjectDto dto, Guid userId);
+        Task UpdateProjectAsync(Guid projectId, UpdateProjectDto dto, Guid userId);
+        Task DeleteProjectAsync(Guid projectId, Guid userId);
     }
 }

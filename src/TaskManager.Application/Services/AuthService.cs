@@ -3,7 +3,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using TaskManager.Application.DTOs;
+using TaskManager.Application.DTOs.User;
 using TaskManager.Application.Interfaces;
 using TaskManager.Domain.Entities;
 using TaskManager.Domain.Interfaces;
@@ -21,7 +21,7 @@ namespace TaskManager.Application.Services
             _configuration = configuration;
         }
 
-        public async Task<AuthResponse> RegisterAsync(RegisterRequest request)
+        public async Task<AuthDto> RegisterAsync(RegisterDto request)
         {
             var userExists = await _userRepository.GetByEmailAsync(request.Email);
             if (userExists != null)
@@ -36,16 +36,16 @@ namespace TaskManager.Application.Services
 
             await _userRepository.AddAsync(user);
 
-            return new AuthResponse { Token = GenerateJwt(user) };
+            return new AuthDto { Token = GenerateJwt(user) };
         }
 
-        public async Task<AuthResponse> LoginAsync(LoginRequest request)
+        public async Task<AuthDto> LoginAsync(LoginDto request)
         {
             var user = await _userRepository.GetByEmailAsync(request.Email);
             if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
                 throw new InvalidOperationException("Credenciais inválidas");
 
-            return new AuthResponse { Token = GenerateJwt(user) };
+            return new AuthDto { Token = GenerateJwt(user) };
         }
 
         private string GenerateJwt(User user)

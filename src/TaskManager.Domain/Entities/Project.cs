@@ -1,15 +1,29 @@
 ﻿namespace TaskManager.Domain.Entities
 {
-    public class Project
+    public class Project : BaseEntity
     {
-        public Guid Id { get; set; } = Guid.NewGuid();
-        public required string Name { get; set; }
-        public required string Description { get; set; }
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-
+        public string Name { get; set; }
+        public string Description { get; set; }
         public Guid UserId { get; set; }
+
         public User? User { get; set; }
 
-        public ICollection<Activity> Tasks { get; set; } = new List<Activity>();
+        public ICollection<Activity> Activities { get; set; } = new List<Activity>();
+
+        public Project(string name, string description, Guid userId)
+        {
+            Name = name;
+            Description = description;
+            UserId = userId;
+        }
+
+        public Project() { }
+
+        public void UpdateDetails(string name, string description, Guid userId)
+        {
+            Name = name;
+            Description = description;
+            UserId = userId;
+        }
     }
 }

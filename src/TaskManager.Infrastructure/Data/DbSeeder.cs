@@ -1,59 +1,60 @@
 ﻿using TaskManager.Domain.Entities;
-using DomainTaskStatus = TaskManager.Domain.Enums.ActivityStatus;
+using TaskManager.Domain.Enums;
+using TaskManager.Infrastructure.Data.Builders;
 
 namespace TaskManager.Infrastructure.Data
 {
     public static class DbSeeder
     {
-        public static async System.Threading.Tasks.Task SeedAsync(AppDbContext context)
+        public static async Task SeedAsync(AppDbContext context)
         {
             if (!context.Users.Any())
             {
-                var user = new User
-                {
-                    Name = "Bruno Dev",
-                    Email = "bruno@dev.com",
-                    PasswordHash = BCrypt.Net.BCrypt.HashPassword("123456")
-                };
+                var user = new UserBuilder()
+                    .WithName("Bruno Dev")
+                    .WithEmail("bruno@dev.com")
+                    .WithPassword("123456")
+                    .Build();
 
-                var project = new Project
-                {
-                    Name = "Projeto de Teste",
-                    Description = "Criado automaticamente via seed",
-                    User = user
-                };
+                var project = new ProjectBuilder()
+                    .WithName("Projeto de Teste")
+                    .WithDescription("Criado automaticamente via seed")
+                    .WithUser(user)
+                    .Build();
 
-                var tasks = new List<Task>
-            {
-                new TaskItem
+                var activities = new List<Activity>
                 {
-                    Title = "Tarefa pendente",
-                    Description = "Ainda não iniciada",
-                    DueDate = DateTime.UtcNow.AddDays(2),
-                    Status = DomainTaskStatus.Pending,
-                    Project = project
-                },
-                new TaskItem
-                {
-                    Title = "Tarefa em andamento",
-                    Description = "Executando...",
-                    DueDate = DateTime.UtcNow.AddDays(5),
-                    Status = DomainTaskStatus.InProgress,
-                    Project = project
-                },
-                new TaskItem
-                {
-                    Title = "Tarefa concluída",
-                    Description = "Já finalizada",
-                    DueDate = DateTime.UtcNow.AddDays(-1),
-                    Status = DomainTaskStatus.Completed,
-                    Project = project
-                }
-            };
+                    new ActivityBuilder()
+                        .WithTitle("Tarefa pendente")
+                        .WithDescription("Ainda não iniciada")
+                        .WithDueDate(DateTime.UtcNow.AddDays(2))
+                        .WithPriority(ActivityPriority.Medium)
+                        .WithStatus(ActivityStatus.Pending)
+                        .WithProject(project)
+                        .Build(),
+
+                    new ActivityBuilder()
+                        .WithTitle("Tarefa em andamento")
+                        .WithDescription("Executando...")
+                        .WithDueDate(DateTime.UtcNow.AddDays(5))
+                        .WithPriority(ActivityPriority.High)
+                        .WithStatus(ActivityStatus.InProgress)
+                        .WithProject(project)
+                        .Build(),
+
+                    new ActivityBuilder()
+                        .WithTitle("Tarefa concluída")
+                        .WithDescription("Já finalizada")
+                        .WithDueDate(DateTime.UtcNow.AddDays(-1))
+                        .WithPriority(ActivityPriority.Low)
+                        .WithStatus(ActivityStatus.Completed)
+                        .WithProject(project)
+                        .Build()
+                };
 
                 context.Users.Add(user);
                 context.Projects.Add(project);
-                context.Tasks.AddRange(tasks);
+                context.Activities.AddRange(activities);
 
                 await context.SaveChangesAsync();
             }
