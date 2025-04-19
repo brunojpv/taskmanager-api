@@ -6,7 +6,9 @@ namespace TaskManager.Api.Endpoints
     {
         public static void MapActivityHistoryEndpoints(this IEndpointRouteBuilder app)
         {
-            var group = app.MapGroup("/api/activity-history").RequireAuthorization();
+            var group = app.MapGroup("/api/activities/{activityId}/history")
+                .WithTags("Histórico de Atividades")
+                .RequireAuthorization();
 
             group.MapGet("/", async (Guid activityId, IActivityHistoryService service) =>
             {

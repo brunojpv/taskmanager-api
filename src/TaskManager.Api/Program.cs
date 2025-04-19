@@ -25,6 +25,8 @@ builder.Services.AddScoped<IActivityService, ActivityService>();
 builder.Services.AddScoped<IActivityRepository, ActivityRepository>();
 builder.Services.AddScoped<IActivityHistoryService, ActivityHistoryService>();
 builder.Services.AddScoped<IActivityHistoryRepository, ActivityHistoryRepository>();
+builder.Services.AddScoped<IActivityCommentService, ActivityCommentService>();
+builder.Services.AddScoped<IActivityCommentRepository, ActivityCommentRepository>();
 builder.Services.AddScoped<IReportService, ReportService>();
 builder.Services.AddScoped<IReportRepository, ReportRepository>();
 
@@ -105,6 +107,7 @@ app.MapAuthEndpoints();
 app.MapProjectEndpoints();
 app.MapActivityEndpoints();
 app.MapActivityHistoryEndpoints();
+app.MapActivityCommentEndpoints();
 app.MapReportEndpoints();
 
 await app.RunAsync();

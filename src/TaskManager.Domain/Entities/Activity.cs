@@ -15,6 +15,8 @@ namespace TaskManager.Domain.Entities
 
         public ICollection<ActivityHistory> ActivityHistories { get; private set; } = new List<ActivityHistory>();
 
+        public ICollection<ActivityComment> ActivityComments { get; private set; } = new List<ActivityComment>();
+
         public Activity(string title, string description, DateTime dueDate, ActivityPriority priority, Guid projectId)
         {
             Title = title;

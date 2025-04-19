@@ -11,6 +11,7 @@ namespace TaskManager.Infrastructure.Data
         public DbSet<Project> Projects => Set<Project>();
         public DbSet<Activity> Activities => Set<Activity>();
         public DbSet<ActivityHistory> ActivityHistories => Set<ActivityHistory>();
+        public DbSet<ActivityComment> ActivityComments => Set<ActivityComment>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
