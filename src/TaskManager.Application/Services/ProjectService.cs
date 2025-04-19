@@ -37,9 +37,7 @@ namespace TaskManager.Application.Services
 
         public async Task UpdateProjectAsync(Guid projectId, UpdateProjectDto dto, Guid userId)
         {
-            var project = await _repository.GetByIdAsync(projectId);
-            if (project == null)
-                throw new NotFoundException("Project not found.");
+            var project = await _repository.GetByIdAsync(projectId) ?? throw new NotFoundException("Project not found.");
 
             var changes = new List<string>();
 
@@ -55,9 +53,7 @@ namespace TaskManager.Application.Services
 
         public async Task DeleteProjectAsync(Guid projectId, Guid userId)
         {
-            var project = await _repository.GetByIdAsync(projectId);
-            if (project == null)
-                throw new NotFoundException("Project not found.");
+            var project = await _repository.GetByIdAsync(projectId) ?? throw new NotFoundException("Project not found.");
 
             if (project.UserId != userId)
                 throw new NotFoundException("User not found.");

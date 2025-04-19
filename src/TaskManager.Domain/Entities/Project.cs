@@ -2,6 +2,8 @@
 {
     public class Project : BaseEntity
     {
+        public const int MaxActivities = 20;
+
         public string Name { get; set; }
         public string Description { get; set; }
         public Guid UserId { get; set; }
@@ -25,5 +27,7 @@
             Description = description;
             UserId = userId;
         }
+
+        public bool CanAddNewActivity() => Activities.Count < MaxActivities;
     }
 }

@@ -24,5 +24,23 @@ namespace TaskManager.UnitTests.Builders
             Assert.Equal("Test project", project.Description);
             Assert.Equal(user, project.User);
         }
+
+        [Fact]
+        public void Should_Not_Allow_More_Than_20_Activities()
+        {
+            var project = new ProjectBuilder()
+                .WithName("Limite")
+                .Build();
+
+            for (int i = 0; i < 20; i++)
+            {
+                project.Activities.Add(new ActivityBuilder()
+                    .WithTitle($"Tarefa {i}")
+                    .WithProject(project)
+                    .Build());
+            }
+
+            Assert.False(project.CanAddNewActivity());
+        }
     }
 }

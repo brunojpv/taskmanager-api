@@ -10,11 +10,13 @@ namespace TaskManager.Application.Services
     {
         private readonly IActivityRepository _repository;
         private readonly IActivityHistoryService _activityHistoryService;
+        private readonly IProjectService _projectService;
 
-        public ActivityService(IActivityRepository repository, IActivityHistoryService activityHistoryService)
+        public ActivityService(IActivityRepository repository, IActivityHistoryService activityHistoryService, IProjectService projectService)
         {
             _repository = repository;
             _activityHistoryService = activityHistoryService;
+            _projectService = projectService;
         }
 
         public Task<IEnumerable<Activity>> GetAllAsync(Guid userId) => _repository.GetAllAsync(userId);
@@ -29,6 +31,11 @@ namespace TaskManager.Application.Services
 
         public async Task<Activity> CreateActivityAsync(CreateActivityDto dto)
         {
+            var project = await _projectService.GetByIdAsync(dto.ProjectId) ?? throw new NotFoundException("Projeto não encontrado.");
+
+            if (!project.CanAddNewActivity())
+                throw new BusinessException("O projeto já possui o número máximo de 20 tarefas.");
+
             var activity = new Activity(dto.Title, dto.Description, dto.DueDate, dto.Priority, dto.ProjectId);
 
             await _repository.AddAsync(activity);
@@ -38,9 +45,7 @@ namespace TaskManager.Application.Services
 
         public async Task UpdateActivityAsync(Guid activityId, UpdateActivityDto dto, Guid userId)
         {
-            var activity = await _repository.GetByIdAsync(activityId);
-            if (activity == null)
-                throw new NotFoundException("Activity not found.");
+            var activity = await _repository.GetByIdAsync(activityId) ?? throw new NotFoundException("Tarefa não encontrada.");
 
             var changes = new List<string>();
 
@@ -59,7 +64,7 @@ namespace TaskManager.Application.Services
             activity.UpdateDetails(dto.Title, dto.Description, dto.DueDate, dto.Status, dto.ProjectId);
             await _repository.UpdateAsync(activity);
 
-            if (changes.Any())
+            if (changes.Count != 0)
             {
                 string description = string.Join(" ", changes);
                 await _activityHistoryService.RecordHistoryAsync(activity.Id, userId, description);
