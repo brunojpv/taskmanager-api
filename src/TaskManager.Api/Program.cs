@@ -85,6 +85,12 @@ builder.Services.AddSwaggerGen(opt =>
             Array.Empty<string>()
         }
     });
+
+    var baseDir = AppContext.BaseDirectory;
+    opt.IncludeXmlComments(Path.Combine(baseDir, "TaskManager.Api.xml"), includeControllerXmlComments: true);
+    opt.IncludeXmlComments(Path.Combine(baseDir, "TaskManager.Application.xml"));
+    opt.IncludeXmlComments(Path.Combine(baseDir, "TaskManager.Domain.xml"));
+    opt.IncludeXmlComments(Path.Combine(baseDir, "TaskManager.Infrastructure.xml"));
 });
 
 var app = builder.Build();
@@ -97,7 +103,11 @@ using (var scope = app.Services.CreateScope())
 
 // Middlewares
 app.UseSwagger();
-app.UseSwaggerUI();
+app.UseSwaggerUI(options =>
+{
+    options.SwaggerEndpoint("/swagger/v1/swagger.json", "TaskManager API v1");
+    options.DocumentTitle = "Documentação da TaskManager API";
+});
 
 app.UseAuthentication();
 app.UseAuthorization();
