@@ -1,4 +1,4 @@
-﻿namespace TaskManager.Application.Exceptions
+﻿namespace TaskManager.Domain.Exceptions
 {
     public class NotFoundException : Exception
     {

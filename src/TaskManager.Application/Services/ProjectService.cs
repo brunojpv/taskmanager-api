@@ -1,8 +1,8 @@
 ﻿using TaskManager.Application.DTOs.Project;
-using TaskManager.Application.Exceptions;
 using TaskManager.Application.Interfaces;
 using TaskManager.Domain.Entities;
 using TaskManager.Domain.Enums;
+using TaskManager.Domain.Exceptions;
 using TaskManager.Domain.Interfaces;
 
 namespace TaskManager.Application.Services

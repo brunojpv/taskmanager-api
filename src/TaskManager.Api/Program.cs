@@ -25,6 +25,8 @@ builder.Services.AddScoped<IActivityService, ActivityService>();
 builder.Services.AddScoped<IActivityRepository, ActivityRepository>();
 builder.Services.AddScoped<IActivityHistoryService, ActivityHistoryService>();
 builder.Services.AddScoped<IActivityHistoryRepository, ActivityHistoryRepository>();
+builder.Services.AddScoped<IReportService, ReportService>();
+builder.Services.AddScoped<IReportRepository, ReportRepository>();
 
 // Auth Config
 var jwtKey = builder.Configuration["Jwt:Key"]
@@ -103,5 +105,6 @@ app.MapAuthEndpoints();
 app.MapProjectEndpoints();
 app.MapActivityEndpoints();
 app.MapActivityHistoryEndpoints();
+app.MapReportEndpoints();
 
 await app.RunAsync();
