@@ -26,7 +26,7 @@ namespace TaskManager.Application.Services
 
         public Task DeleteAsync(Guid id) => _repository.DeleteAsync(id);
 
-        public async Task<Project> CreateActivityAsync(CreateProjectDto dto, Guid userId)
+        public async Task<Project> CreateProjectAsync(CreateProjectDto dto, Guid userId)
         {
             var project = new Project(dto.Name, dto.Description, userId);
 
@@ -48,6 +48,7 @@ namespace TaskManager.Application.Services
                 changes.Add($"Description changed.");
 
             project.UpdateDetails(dto.Name, dto.Description, userId);
+
             await _repository.UpdateAsync(project);
         }
 

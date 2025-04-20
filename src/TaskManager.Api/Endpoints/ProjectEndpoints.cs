@@ -39,7 +39,7 @@ namespace TaskManager.Api.Endpoints
             group.MapPost("/", async (ClaimsPrincipal user, CreateProjectDto dto, IProjectService service) =>
             {
                 var userId = Guid.Parse(user.FindFirstValue(ClaimTypes.NameIdentifier)!);
-                var createdProject = await service.CreateActivityAsync(dto, userId);
+                var createdProject = await service.CreateProjectAsync(dto, userId);
                 return Results.Created($"/api/projects/{createdProject.Id}", createdProject);
             })
             .WithName("CreateProject")

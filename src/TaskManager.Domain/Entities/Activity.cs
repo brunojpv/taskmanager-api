@@ -4,8 +4,8 @@ namespace TaskManager.Domain.Entities
 {
     public class Activity : BaseEntity
     {
-        public string Title { get; private set; }
-        public string Description { get; private set; }
+        public string? Title { get; private set; }
+        public string? Description { get; private set; }
         public DateTime DueDate { get; private set; }
         public ActivityStatus Status { get; set; }
         public ActivityPriority Priority { get; private set; }
@@ -17,7 +17,7 @@ namespace TaskManager.Domain.Entities
 
         public ICollection<ActivityComment> ActivityComments { get; private set; } = new List<ActivityComment>();
 
-        public Activity(string title, string description, DateTime dueDate, ActivityPriority priority, Guid projectId)
+        public Activity(string? title, string? description, DateTime dueDate, ActivityPriority priority, Guid projectId)
         {
             Title = title;
             Description = description;
@@ -29,7 +29,7 @@ namespace TaskManager.Domain.Entities
 
         protected Activity() { }
 
-        public void UpdateDetails(string title, string description, DateTime dueDate, ActivityStatus status, Guid projectId)
+        public void UpdateDetails(string? title, string? description, DateTime dueDate, ActivityStatus status, Guid projectId)
         {
             Title = title;
             Description = description;

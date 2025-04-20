@@ -10,7 +10,7 @@ namespace TaskManager.Application.Interfaces
         Task AddAsync(Project project);
         Task UpdateAsync(Project project);
         Task DeleteAsync(Guid id);
-        Task<Project> CreateActivityAsync(CreateProjectDto dto, Guid userId);
+        Task<Project> CreateProjectAsync(CreateProjectDto dto, Guid userId);
         Task UpdateProjectAsync(Guid projectId, UpdateProjectDto dto, Guid userId);
         Task DeleteProjectAsync(Guid projectId, Guid userId);
     }
