@@ -1,10 +1,11 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using TaskManager.Application.DTOs.User;
 using TaskManager.Application.Interfaces;
+using TaskManager.Application.Settings;
 using TaskManager.Domain.Entities;
 using TaskManager.Domain.Interfaces;
 
@@ -13,36 +14,31 @@ namespace TaskManager.Application.Services
     public class AuthService : IAuthService
     {
         private readonly IUserRepository _userRepository;
-        private readonly IConfiguration _configuration;
+        private readonly JwtSettings _jwtSettings;
 
-        public AuthService(IUserRepository userRepository, IConfiguration configuration)
+        public AuthService(IUserRepository userRepository, IOptions<JwtSettings> jwtOptions)
         {
             _userRepository = userRepository;
-            _configuration = configuration;
+            _jwtSettings = jwtOptions.Value;
         }
 
         public async Task<AuthDto> RegisterAsync(RegisterDto request)
         {
             var userExists = await _userRepository.GetByEmailAsync(request.Email);
-            if (userExists != null)
+            if (userExists is not null)
                 throw new InvalidOperationException("E-mail já cadastrado");
 
-            var user = new User
-            {
-                Name = request.Name,
-                Email = request.Email,
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password)
-            };
+            var hashedPassword = BCrypt.Net.BCrypt.HashPassword(request.Password);
+            var user = User.Create(request.Name, request.Email, hashedPassword);
 
             await _userRepository.AddAsync(user);
-
             return new AuthDto { Token = GenerateJwt(user) };
         }
 
         public async Task<AuthDto> LoginAsync(LoginDto request)
         {
             var user = await _userRepository.GetByEmailAsync(request.Email);
-            if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
+            if (user is null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
                 throw new InvalidOperationException("Credenciais inválidas");
 
             return new AuthDto { Token = GenerateJwt(user) };
@@ -53,20 +49,17 @@ namespace TaskManager.Application.Services
             var claims = new[]
             {
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                new Claim(ClaimTypes.Email, user.Email)
+                new Claim(ClaimTypes.Email, user.Email!)
             };
 
-            var jwtKey = _configuration["Jwt:Key"]
-                ?? throw new InvalidOperationException("JWT Key está ausente no appsettings.");
-
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.Key));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var token = new JwtSecurityToken(
-                issuer: _configuration["Jwt:Issuer"],
-                audience: _configuration["Jwt:Audience"],
+                issuer: _jwtSettings.Issuer,
+                audience: _jwtSettings.Audience,
                 claims: claims,
-                expires: DateTime.UtcNow.AddHours(2),
+                expires: DateTime.UtcNow.AddHours(_jwtSettings.ExpirationHours),
                 signingCredentials: creds);
 
             return new JwtSecurityTokenHandler().WriteToken(token);

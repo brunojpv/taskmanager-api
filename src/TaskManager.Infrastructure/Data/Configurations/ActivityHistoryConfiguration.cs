@@ -10,12 +10,11 @@ namespace TaskManager.Infrastructure.Data.Configurations
         {
             builder.HasKey(ah => ah.Id);
 
-            builder.Property(ah => ah.ChangeDescription)
+            builder.Property(ah => ah.Description)
                 .HasMaxLength(255)
                 .IsRequired();
 
-            builder.Property(ah => ah.ChangedByUserId)
-                .HasMaxLength(100)
+            builder.Property(ah => ah.UserId)
                 .IsRequired();
 
             builder.HasOne(ah => ah.Activity)
@@ -23,6 +22,11 @@ namespace TaskManager.Infrastructure.Data.Configurations
                 .HasForeignKey(ah => ah.ActivityId)
                 .IsRequired()
                 .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasOne(ah => ah.User)
+                .WithMany()
+                .HasForeignKey(ah => ah.UserId)
+                .OnDelete(DeleteBehavior.NoAction);
         }
     }
 }

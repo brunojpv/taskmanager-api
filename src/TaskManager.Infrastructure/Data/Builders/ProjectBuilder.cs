@@ -7,6 +7,7 @@ namespace TaskManager.Infrastructure.Data.Builders
         private string _name = "Projeto Padrão";
         private string _description = "Descrição do projeto";
         private User? _user;
+        private Guid? _userId;
 
         public ProjectBuilder WithName(string name)
         {
@@ -23,17 +24,27 @@ namespace TaskManager.Infrastructure.Data.Builders
         public ProjectBuilder WithUser(User user)
         {
             _user = user;
+            _userId = user.Id;
+            return this;
+        }
+
+        public ProjectBuilder WithUserId(Guid userId)
+        {
+            _userId = userId;
             return this;
         }
 
         public Project Build()
         {
-            return new Project
+            if (_userId is null)
+                throw new InvalidOperationException("O ID do usuário é obrigatório para criar um projeto.");
+
+            var project = new Project(_name, _description, _userId.Value)
             {
-                Name = _name,
-                Description = _description,
-                User = _user ?? throw new ArgumentNullException(nameof(_user))
+                User = _user
             };
+
+            return project;
         }
     }
 }

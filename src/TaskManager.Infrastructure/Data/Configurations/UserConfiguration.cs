@@ -24,6 +24,11 @@ namespace TaskManager.Infrastructure.Data.Configurations
             builder.Property(u => u.PasswordHash)
                 .HasMaxLength(255)
                 .IsRequired();
+
+            builder.HasMany(u => u.Projects)
+                .WithOne(p => p.User)
+                .HasForeignKey(p => p.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

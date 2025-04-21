@@ -6,6 +6,7 @@ using System.Text;
 using TaskManager.Api.Endpoints;
 using TaskManager.Application.Interfaces;
 using TaskManager.Application.Services;
+using TaskManager.Application.Settings;
 using TaskManager.Domain.Interfaces;
 using TaskManager.Infrastructure.Data;
 using TaskManager.Infrastructure.Repositories;
@@ -30,15 +31,11 @@ builder.Services.AddScoped<IActivityCommentRepository, ActivityCommentRepository
 builder.Services.AddScoped<IReportService, ReportService>();
 builder.Services.AddScoped<IReportRepository, ReportRepository>();
 
-// Auth Config
-var jwtKey = builder.Configuration["Jwt:Key"]
-    ?? throw new InvalidOperationException("JWT Key não encontrada na configuração.");
+builder.Services.Configure<JwtSettings>(
+    builder.Configuration.GetSection("Jwt"));
 
-var jwtIssuer = builder.Configuration["Jwt:Issuer"]
-    ?? throw new InvalidOperationException("JWT Issuer não encontrado na configuração.");
-
-var jwtAudience = builder.Configuration["Jwt:Audience"]
-    ?? throw new InvalidOperationException("JWT Audience não encontrado na configuração.");
+var jwtSettings = builder.Configuration.GetSection("Jwt").Get<JwtSettings>()
+    ?? throw new InvalidOperationException("JWT settings are missing.");
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -49,9 +46,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateAudience = true,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            ValidIssuer = jwtIssuer,
-            ValidAudience = jwtAudience,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
+            ValidIssuer = jwtSettings.Issuer,
+            ValidAudience = jwtSettings.Audience,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Key))
         };
     });
 

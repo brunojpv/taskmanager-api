@@ -15,7 +15,8 @@ namespace TaskManager.Infrastructure.Data.Configurations
                 .IsRequired();
 
             builder.Property(a => a.Description)
-                .HasMaxLength(1000);
+                .HasMaxLength(1000)
+                .IsRequired();
 
             builder.Property(a => a.Status)
                 .HasConversion<string>()

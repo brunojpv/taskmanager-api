@@ -10,6 +10,7 @@ namespace TaskManager.Infrastructure.Data.Builders
         private DateTime _dueDate = DateTime.UtcNow.AddDays(1);
         private ActivityPriority _priority = ActivityPriority.Medium;
         private ActivityStatus _status = ActivityStatus.Pending;
+        private Guid? _projectId;
         private Project? _project;
 
         public ActivityBuilder WithTitle(string title)
@@ -45,17 +46,27 @@ namespace TaskManager.Infrastructure.Data.Builders
         public ActivityBuilder WithProject(Project project)
         {
             _project = project;
+            _projectId = project.Id;
+            return this;
+        }
+
+        public ActivityBuilder WithProjectId(Guid projectId)
+        {
+            _projectId = projectId;
             return this;
         }
 
         public Activity Build()
         {
+            if (_projectId is null)
+                throw new InvalidOperationException("O ID do projeto é obrigatório para criar uma atividade.");
+
             var activity = new Activity(
                 title: _title,
                 description: _description,
                 dueDate: _dueDate,
                 priority: _priority,
-                projectId: _project?.Id ?? throw new ArgumentNullException(nameof(_project))
+                projectId: _projectId.Value
             )
             {
                 Status = _status,

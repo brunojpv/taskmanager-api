@@ -28,12 +28,8 @@ namespace TaskManager.Infrastructure.Data.Builders
 
         public User Build()
         {
-            return new User
-            {
-                Name = _name,
-                Email = _email,
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword(_password)
-            };
+            var hashedPassword = BCrypt.Net.BCrypt.HashPassword(_password);
+            return new User(_name, _email, hashedPassword);
         }
     }
 }

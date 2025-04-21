@@ -15,7 +15,8 @@ namespace TaskManager.Infrastructure.Data.Configurations
                 .IsRequired();
 
             builder.Property(p => p.Description)
-                .HasMaxLength(255);
+                .HasMaxLength(255)
+                .IsRequired();
 
             builder.HasOne(p => p.User)
                 .WithMany(u => u.Projects)

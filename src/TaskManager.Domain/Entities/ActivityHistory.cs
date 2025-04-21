@@ -3,18 +3,28 @@
     public class ActivityHistory : BaseEntity
     {
         public Guid ActivityId { get; private set; }
-        public Guid ChangedByUserId { get; private set; }
-        public string ChangeDescription { get; private set; }
+        public string Description { get; private set; } = string.Empty;
+        public Guid UserId { get; private set; }
 
-        public Activity? Activity { get; private set; }
+        public Activity? Activity { get; set; }
+        public User? User { get; set; }
 
-        public ActivityHistory(Guid activityId, Guid changedByUserId, string changeDescription)
+        protected ActivityHistory() { }
+
+        public ActivityHistory(Guid activityId, string description, Guid userId)
         {
-            ActivityId = activityId;
-            ChangedByUserId = changedByUserId;
-            ChangeDescription = changeDescription;
-        }
+            if (activityId == Guid.Empty)
+                throw new ArgumentException("ActivityId não pode ser vazio.", nameof(activityId));
 
-        private ActivityHistory() { }
+            if (string.IsNullOrWhiteSpace(description))
+                throw new ArgumentException("Descrição do histórico não pode ser vazia ou nula.", nameof(description));
+
+            if (userId == Guid.Empty)
+                throw new ArgumentException("UserId não pode ser vazio.", nameof(userId));
+
+            ActivityId = activityId;
+            Description = description;
+            UserId = userId;
+        }
     }
 }
