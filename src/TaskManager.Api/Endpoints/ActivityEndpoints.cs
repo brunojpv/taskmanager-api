@@ -1,4 +1,5 @@
 ﻿using System.Security.Claims;
+using TaskManager.Api.Extensions;
 using TaskManager.Application.DTOs.Activity;
 using TaskManager.Application.Interfaces;
 
@@ -14,66 +15,68 @@ namespace TaskManager.Api.Endpoints
 
             group.MapGet("/", async (ClaimsPrincipal user, IActivityService service) =>
             {
-                var userId = Guid.Parse(user.FindFirstValue(ClaimTypes.NameIdentifier)!);
-                var result = await service.GetAllAsync(userId);
+                var userId = user.GetUserId();
+                if (userId is null)
+                    return Results.Unauthorized();
+
+                var result = await service.GetAllActivityAsync(userId);
                 return Results.Ok(result);
             })
             .WithName("GetAllActivities")
             .WithSummary("Lista todas as atividades do usuário")
             .WithDescription("Retorna todas as atividades de todos os projetos vinculados ao usuário autenticado.")
-            .Produces(StatusCodes.Status200OK);
+            .Produces<IEnumerable<ActivityDto>>(StatusCodes.Status200OK);
 
             group.MapGet("/{id:guid}", async (Guid id, IActivityService service) =>
             {
-                var task = await service.GetByIdAsync(id);
-                return task is null ? Results.NotFound() : Results.Ok(task);
+                var result = await service.GetByIdAsync(id);
+                return result is null ? Results.NotFound() : Results.Ok(result);
             })
             .WithName("GetActivityById")
             .WithSummary("Busca uma atividade pelo ID")
             .WithDescription("Retorna os detalhes de uma atividade específica pelo identificador único.")
-            .Produces(StatusCodes.Status200OK)
+            .Produces<ActivityDto>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status404NotFound);
 
             group.MapPost("/", async (CreateActivityDto dto, IActivityService service) =>
             {
-                var createdActivity = await service.CreateActivityAsync(dto);
-                return Results.Created($"/api/activity/{createdActivity.Id}", createdActivity);
+                var result = await service.CreateActivityAsync(dto);
+                return Results.Created($"/api/activity/{result.Id}", result);
             })
             .WithName("CreateActivity")
             .WithSummary("Cria uma nova atividade")
             .WithDescription("Cria uma nova tarefa dentro de um projeto específico.")
-            .Produces(StatusCodes.Status201Created);
+            .Produces<ActivityDto>(StatusCodes.Status201Created);
 
-            group.MapPut("/{id:guid}", async (Guid id, UpdateActivityDto dto, ClaimsPrincipal user, IActivityService service) =>
+            group.MapPut("/{activityId:guid}", async (Guid activityId, UpdateActivityDto dto, ClaimsPrincipal user, IActivityService service) =>
             {
-                var userId = Guid.Parse(user.FindFirstValue(ClaimTypes.NameIdentifier)!);
-                await service.UpdateActivityAsync(id, dto, userId);
-                return Results.NoContent();
+                var userId = user.GetUserId();
+                if (userId is null)
+                    return Results.Unauthorized();
+
+                var result = await service.UpdateActivityAsync(activityId, dto, userId);
+                return result is null ? Results.Forbid() : Results.Ok(result);
             })
             .WithName("UpdateActivity")
             .WithSummary("Atualiza uma atividade")
             .WithDescription("Atualiza o título, descrição, status ou prioridade de uma atividade existente.")
-            .Produces(StatusCodes.Status204NoContent);
+            .Produces<ActivityDto>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status403Forbidden);
 
-            group.MapDelete("/{id:guid}", async (Guid id, ClaimsPrincipal user, IActivityService service) =>
+            group.MapDelete("/{activityId:guid}", async (Guid activityId, ClaimsPrincipal user, IActivityService service) =>
             {
-                var activity = await service.GetByIdAsync(id);
-                if (activity is null)
-                    return Results.NotFound(new { error = "Tarefa não encontrada." });
+                var userId = user.GetUserId();
+                if (userId is null)
+                    return Results.Unauthorized();
 
-                var userId = Guid.Parse(user.FindFirstValue(ClaimTypes.NameIdentifier)!);
-                if (activity.Project?.UserId != userId)
-                    return Results.Forbid();
-
-                await service.DeleteAsync(id);
-                return Results.NoContent();
+                var result = await service.DeleteActivityAsync(activityId, userId);
+                return result ? Results.NoContent() : Results.Forbid();
             })
             .WithName("DeleteActivity")
             .WithSummary("Remove uma atividade")
             .WithDescription("Remove uma atividade desde que o usuário autenticado seja o dono do projeto.")
             .Produces(StatusCodes.Status204NoContent)
-            .Produces(StatusCodes.Status403Forbidden)
-            .Produces(StatusCodes.Status404NotFound);
+            .Produces(StatusCodes.Status403Forbidden);
         }
     }
 }

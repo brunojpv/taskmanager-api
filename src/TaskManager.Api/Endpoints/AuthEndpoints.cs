@@ -12,15 +12,8 @@ namespace TaskManager.Api.Endpoints
 
             group.MapPost("/register", async (RegisterDto request, IAuthService authService) =>
             {
-                try
-                {
-                    var response = await authService.RegisterAsync(request);
-                    return Results.Ok(response);
-                }
-                catch (Exception ex)
-                {
-                    return Results.BadRequest(new { error = ex.Message });
-                }
+                var response = await authService.RegisterAsync(request);
+                return Results.Ok(response);
             })
             .WithName("RegisterUser")
             .WithSummary("Registro de novo usuário")

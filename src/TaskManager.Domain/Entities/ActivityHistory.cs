@@ -4,14 +4,14 @@
     {
         public Guid ActivityId { get; private set; }
         public string Description { get; private set; } = string.Empty;
-        public Guid UserId { get; private set; }
+        public Guid? UserId { get; private set; }
 
         public Activity? Activity { get; set; }
         public User? User { get; set; }
 
         protected ActivityHistory() { }
 
-        public ActivityHistory(Guid activityId, string description, Guid userId)
+        public ActivityHistory(Guid activityId, string description, Guid? userId)
         {
             if (activityId == Guid.Empty)
                 throw new ArgumentException("ActivityId não pode ser vazio.", nameof(activityId));

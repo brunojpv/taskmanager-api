@@ -3,6 +3,9 @@ using TaskManager.Domain.Enums;
 
 namespace TaskManager.Infrastructure.Data
 {
+    /// <summary>
+    /// Fábrica de dados padrão utilizada para popular o banco em ambiente de desenvolvimento/testes.
+    /// </summary>
     public static class SeedFactory
     {
         public static User CreateDefaultUser()
@@ -14,9 +17,7 @@ namespace TaskManager.Infrastructure.Data
         public static List<User> CreateUserProjectActivitySeed()
         {
             var users = new List<User>();
-
-            var hashedPassword = BCrypt.Net.BCrypt.HashPassword("123456");
-            var user = User.Create("Bruno Dev", "bruno@dev.com", hashedPassword);
+            var user = CreateDefaultUser();
 
             var project = new Project(
                 name: "Projeto Principal",
@@ -26,35 +27,33 @@ namespace TaskManager.Infrastructure.Data
 
             project.User = user;
 
-            var activityA = new Activity(
+            var activityA = Activity.Create(
                 title: "Atividade A",
                 description: "Primeira atividade",
                 dueDate: DateTime.UtcNow.AddDays(1),
                 priority: ActivityPriority.Medium,
                 projectId: project.Id
-            )
-            { Project = project, Status = ActivityStatus.Pending };
+            );
 
-            var activityB = new Activity(
+            var activityB = Activity.Create(
                 title: "Atividade B",
                 description: "Segunda atividade",
                 dueDate: DateTime.UtcNow.AddDays(3),
                 priority: ActivityPriority.High,
                 projectId: project.Id
-            )
-            { Project = project, Status = ActivityStatus.InProgress };
+            );
 
-            var comment1 = new ActivityComment(activityA.Id, user.Id, "Comentário sobre a atividade A");
-            var comment2 = new ActivityComment(activityB.Id, user.Id, "Comentário sobre a atividade B");
+            activityA.SetProject(project);
+            activityB.SetProject(project);
 
-            var history1 = new ActivityHistory(activityA.Id, "Atividade criada.", user.Id);
-            var history2 = new ActivityHistory(activityB.Id, "Atividade em andamento.", user.Id);
+            activityA.SetStatus(ActivityStatus.Pending);
+            activityB.SetStatus(ActivityStatus.InProgress);
 
-            activityA.ActivityComments.Add(comment1);
-            activityA.ActivityHistories.Add(history1);
+            activityA.ActivityComments.Add(new ActivityComment(activityA.Id, user.Id, "Comentário sobre a atividade A"));
+            activityB.ActivityComments.Add(new ActivityComment(activityB.Id, user.Id, "Comentário sobre a atividade B"));
 
-            activityB.ActivityComments.Add(comment2);
-            activityB.ActivityHistories.Add(history2);
+            activityA.ActivityHistories.Add(new ActivityHistory(activityA.Id, "Atividade criada.", user.Id));
+            activityB.ActivityHistories.Add(new ActivityHistory(activityB.Id, "Atividade em andamento.", user.Id));
 
             project.AddActivity(activityA);
             project.AddActivity(activityB);
@@ -79,32 +78,21 @@ namespace TaskManager.Infrastructure.Data
 
         public static List<Activity> CreateSampleActivities(Project project)
         {
-            return new List<Activity>
+            var activities = new List<Activity>
             {
-                new Activity(
-                    title: "Tarefa pendente",
-                    description: "Ainda não iniciada",
-                    dueDate: DateTime.UtcNow.AddDays(2),
-                    priority: ActivityPriority.Medium,
-                    projectId: project.Id
-                ) { Status = ActivityStatus.Pending, Project = project },
-
-                new Activity(
-                    title: "Tarefa em andamento",
-                    description: "Executando...",
-                    dueDate: DateTime.UtcNow.AddDays(5),
-                    priority: ActivityPriority.High,
-                    projectId: project.Id
-                ) { Status = ActivityStatus.InProgress, Project = project },
-
-                new Activity(
-                    title: "Tarefa concluída",
-                    description: "Já finalizada",
-                    dueDate: DateTime.UtcNow.AddDays(-1),
-                    priority: ActivityPriority.Low,
-                    projectId: project.Id
-                ) { Status = ActivityStatus.Completed, Project = project }
+                Activity.Create("Tarefa pendente", "Ainda não iniciada", DateTime.UtcNow.AddDays(2), ActivityPriority.Medium, project.Id),
+                Activity.Create("Tarefa em andamento", "Executando...", DateTime.UtcNow.AddDays(5), ActivityPriority.High, project.Id),
+                Activity.Create("Tarefa concluída", "Já finalizada", DateTime.UtcNow.AddDays(-1), ActivityPriority.Low, project.Id)
             };
+
+            activities[0].SetStatus(ActivityStatus.Pending);
+            activities[1].SetStatus(ActivityStatus.InProgress);
+            activities[2].SetStatus(ActivityStatus.Completed);
+
+            foreach (var activity in activities)
+                activity.SetProject(project);
+
+            return activities;
         }
     }
 }

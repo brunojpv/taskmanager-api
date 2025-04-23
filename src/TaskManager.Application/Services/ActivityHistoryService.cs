@@ -13,7 +13,7 @@ namespace TaskManager.Application.Services
             _historyRepository = historyRepository;
         }
 
-        public async Task RecordHistoryAsync(Guid activityId, Guid userId, string description)
+        public async Task RecordHistoryAsync(Guid activityId, Guid? userId, string description)
         {
             var history = new ActivityHistory(activityId, description, userId);
             await _historyRepository.AddAsync(history);

@@ -14,7 +14,7 @@ namespace TaskManager.Infrastructure.Repositories
             _context = context;
         }
 
-        public async Task<IEnumerable<Activity>> GetAllAsync(Guid userId)
+        public async Task<IEnumerable<Activity>> GetAllAsync(Guid? userId)
         {
             return await _context.Activities
                 .Include(t => t.Project)
@@ -29,24 +29,24 @@ namespace TaskManager.Infrastructure.Repositories
                 .FirstOrDefaultAsync(t => t.Id == id);
         }
 
-        public async Task AddAsync(Activity task)
+        public async Task AddAsync(Activity activity)
         {
-            _context.Activities.Add(task);
+            _context.Activities.Add(activity);
             await _context.SaveChangesAsync();
         }
 
-        public async Task UpdateAsync(Activity task)
+        public async Task UpdateAsync(Activity activity)
         {
-            _context.Activities.Update(task);
+            _context.Activities.Update(activity);
             await _context.SaveChangesAsync();
         }
 
         public async Task DeleteAsync(Guid id)
         {
-            var task = await _context.Activities.FindAsync(id);
-            if (task is not null)
+            var activity = await _context.Activities.FindAsync(id);
+            if (activity is not null)
             {
-                _context.Activities.Remove(task);
+                _context.Activities.Remove(activity);
                 await _context.SaveChangesAsync();
             }
         }

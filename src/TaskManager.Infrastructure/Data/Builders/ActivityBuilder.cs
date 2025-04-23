@@ -3,6 +3,9 @@ using TaskManager.Domain.Enums;
 
 namespace TaskManager.Infrastructure.Data.Builders
 {
+    /// <summary>
+    /// Construtor fluente para instanciar objetos do tipo Activity com flexibilidade, ideal para testes e seeds.
+    /// </summary>
     public class ActivityBuilder
     {
         private string _title = "Atividade";
@@ -58,20 +61,22 @@ namespace TaskManager.Infrastructure.Data.Builders
 
         public Activity Build()
         {
-            if (_projectId is null)
+            if (_projectId is null || _projectId == Guid.Empty)
                 throw new InvalidOperationException("O ID do projeto é obrigatório para criar uma atividade.");
 
-            var activity = new Activity(
+            var activity = Activity.Create(
                 title: _title,
                 description: _description,
                 dueDate: _dueDate,
                 priority: _priority,
                 projectId: _projectId.Value
-            )
-            {
-                Status = _status,
-                Project = _project
-            };
+            );
+
+            if (_project is not null)
+                activity.SetProject(_project);
+
+            if (activity.Status != _status)
+                activity.SetStatus(_status);
 
             return activity;
         }

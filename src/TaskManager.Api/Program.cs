@@ -1,5 +1,6 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
@@ -10,6 +11,7 @@ using TaskManager.Application.Settings;
 using TaskManager.Domain.Interfaces;
 using TaskManager.Infrastructure.Data;
 using TaskManager.Infrastructure.Repositories;
+using TaskManager.Infrastructure.Security;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -31,11 +33,12 @@ builder.Services.AddScoped<IActivityCommentRepository, ActivityCommentRepository
 builder.Services.AddScoped<IReportService, ReportService>();
 builder.Services.AddScoped<IReportRepository, ReportRepository>();
 
-builder.Services.Configure<JwtSettings>(
-    builder.Configuration.GetSection("Jwt"));
+builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("Jwt"));
+builder.Services.AddSingleton<IValidateOptions<JwtSettings>, JwtSettingsValidator>();
+//builder.Services.AddSingleton<IConfigureOptions<JwtBearerOptions>, JwtBearerOptionsSetup>();
+//builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer();
 
-var jwtSettings = builder.Configuration.GetSection("Jwt").Get<JwtSettings>()
-    ?? throw new InvalidOperationException("JWT settings are missing.");
+var jwtSettings = builder.Configuration.GetSection("Jwt").Get<JwtSettings>();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -50,7 +53,22 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidAudience = jwtSettings.Audience,
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Key))
         };
+
+        options.Events = new JwtBearerEvents
+        {
+            OnAuthenticationFailed = context =>
+            {
+                Console.WriteLine($"❌ Falha na autenticação: {context.Exception.Message}");
+                return Task.CompletedTask;
+            },
+            OnTokenValidated = context =>
+            {
+                Console.WriteLine($"✅ Token validado para: {context.Principal?.Identity?.Name ?? "usuário desconhecido"}");
+                return Task.CompletedTask;
+            }
+        };
     });
+
 
 builder.Services.AddAuthorization();
 
@@ -103,7 +121,8 @@ app.UseSwagger();
 app.UseSwaggerUI(options =>
 {
     options.SwaggerEndpoint("/swagger/v1/swagger.json", "TaskManager API v1");
-    options.DocumentTitle = "Documenta��o da TaskManager API";
+    options.DocumentTitle = "TaskManager - API Docs";
+    options.RoutePrefix = string.Empty;
 });
 
 app.UseAuthentication();

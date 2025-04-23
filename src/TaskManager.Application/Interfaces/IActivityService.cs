@@ -5,12 +5,14 @@ namespace TaskManager.Application.Interfaces
 {
     public interface IActivityService
     {
-        Task<IEnumerable<Activity>> GetAllAsync(Guid userId);
+        Task<IEnumerable<Activity>> GetAllAsync(Guid? userId);
         Task<Activity?> GetByIdAsync(Guid id);
-        Task AddAsync(Activity task);
-        Task UpdateAsync(Activity task);
+        Task AddAsync(Activity activity);
+        Task UpdateAsync(Activity activity);
         Task DeleteAsync(Guid id);
-        Task<Activity> CreateActivityAsync(CreateActivityDto dto);
-        Task UpdateActivityAsync(Guid activityId, UpdateActivityDto dto, Guid userId);
+        Task<IEnumerable<ActivityDto>> GetAllActivityAsync(Guid? userId);
+        Task<ActivityDto> CreateActivityAsync(CreateActivityDto dto);
+        Task<ActivityDto?> UpdateActivityAsync(Guid activityId, UpdateActivityDto dto, Guid? userId);
+        Task<bool> DeleteActivityAsync(Guid activityId, Guid? userId);
     }
 }
