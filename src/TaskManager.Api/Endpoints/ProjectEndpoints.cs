@@ -1,76 +1,134 @@
-﻿using System.Security.Claims;
-using TaskManager.Application.DTOs.Project;
-using TaskManager.Application.Interfaces;
-using TaskManager.Domain.Entities;
+﻿using TaskManager.Application.DTOs;
+using TaskManager.Application.Services;
+using TaskManager.Domain.Exceptions;
 
 namespace TaskManager.Api.Endpoints
 {
     public static class ProjectEndpoints
     {
-        public static void MapProjectEndpoints(this IEndpointRouteBuilder app)
+        public static void MapProjectEndpoints(this IEndpointRouteBuilder routes)
         {
-            var group = app.MapGroup("/api/projects")
-                .WithTags("Projetos")
-                .RequireAuthorization();
+            var group = routes.MapGroup("/api/projects").WithTags("Projects");
 
-            group.MapGet("/", async (ClaimsPrincipal user, IProjectService service) =>
+            group.MapGet("/{userId:guid}", async (Guid userId, IProjectService projectService) =>
             {
-                var userId = Guid.Parse(user.FindFirstValue(ClaimTypes.NameIdentifier)!);
-                var result = await service.GetAllAsync(userId);
-                return Results.Ok(result);
+                try
+                {
+                    var projects = await projectService.GetAllByUserIdAsync(userId);
+                    return Results.Ok(projects);
+                }
+                catch (DomainException ex)
+                {
+                    return Results.BadRequest(new { message = ex.Message });
+                }
+                catch (Exception)
+                {
+                    return Results.StatusCode(500);
+                }
             })
-            .WithName("GetUserProjects")
-            .WithSummary("Lista projetos do usuário")
-            .WithDescription("Retorna todos os projetos associados ao usuário autenticado.")
-            .Produces<List<Project>>(StatusCodes.Status200OK)
-            .Produces(StatusCodes.Status401Unauthorized);
-
-            group.MapGet("/{id:guid}", async (Guid id, IProjectService service) =>
+            .WithName("GetProjectsByUserId")
+            .WithOpenApi(operation =>
             {
-                var project = await service.GetByIdAsync(id);
-                return project is null ? Results.NotFound() : Results.Ok(project);
+                operation.Summary = "Obter todos os projetos de um usuário";
+                operation.Description = "Retorna todos os projetos associados a um usuário específico";
+                return operation;
+            });
+
+            group.MapGet("/{id:guid}/details", async (Guid id, IProjectService projectService) =>
+            {
+                try
+                {
+                    var project = await projectService.GetByIdAsync(id);
+                    return Results.Ok(project);
+                }
+                catch (DomainException ex)
+                {
+                    return Results.NotFound(new { message = ex.Message });
+                }
+                catch (Exception)
+                {
+                    return Results.StatusCode(500);
+                }
             })
             .WithName("GetProjectById")
-            .WithSummary("Busca um projeto por ID")
-            .WithDescription("Retorna os detalhes de um projeto específico pelo seu identificador.")
-            .Produces<Project>(StatusCodes.Status200OK)
-            .Produces(StatusCodes.Status404NotFound);
-
-            group.MapPost("/", async (ClaimsPrincipal user, CreateProjectDto dto, IProjectService service) =>
+            .WithOpenApi(operation =>
             {
-                var userId = Guid.Parse(user.FindFirstValue(ClaimTypes.NameIdentifier)!);
-                var createdProject = await service.CreateProjectAsync(dto, userId);
-                return Results.Created($"/api/projects/{createdProject.Id}", createdProject);
+                operation.Summary = "Obter detalhes de um projeto";
+                operation.Description = "Retorna os detalhes de um projeto específico pelo ID";
+                return operation;
+            });
+
+            group.MapPost("/", async (ProjectCreateDTO projectDto, IProjectService projectService) =>
+            {
+                try
+                {
+                    var project = await projectService.CreateAsync(projectDto);
+                    return Results.Created($"/api/projects/{project.Id}/details", project);
+                }
+                catch (DomainException ex)
+                {
+                    return Results.BadRequest(new { message = ex.Message });
+                }
+                catch (Exception)
+                {
+                    return Results.StatusCode(500);
+                }
             })
             .WithName("CreateProject")
-            .WithSummary("Cria um novo projeto")
-            .WithDescription("Cria um projeto vinculado ao usuário logado.")
-            .Produces<Project>(StatusCodes.Status201Created)
-            .Produces(StatusCodes.Status401Unauthorized);
-
-
-            group.MapPut("/{id:guid}", async (Guid id, ClaimsPrincipal user, UpdateProjectDto dto, IProjectService service) =>
+            .WithOpenApi(operation =>
             {
-                var userId = Guid.Parse(user.FindFirstValue(ClaimTypes.NameIdentifier)!);
-                await service.UpdateProjectAsync(id, dto, userId);
-                return Results.NoContent();
+                operation.Summary = "Criar um novo projeto";
+                operation.Description = "Cria um novo projeto com os dados fornecidos";
+                return operation;
+            });
+
+            group.MapPut("/", async (ProjectUpdateDTO projectDto, IProjectService projectService) =>
+            {
+                try
+                {
+                    var project = await projectService.UpdateAsync(projectDto);
+                    return Results.Ok(project);
+                }
+                catch (DomainException ex)
+                {
+                    return Results.BadRequest(new { message = ex.Message });
+                }
+                catch (Exception)
+                {
+                    return Results.StatusCode(500);
+                }
             })
             .WithName("UpdateProject")
-            .WithSummary("Atualiza um projeto")
-            .WithDescription("Atualiza as informações de um projeto pertencente ao usuário autenticado.")
-            .Produces(StatusCodes.Status204NoContent);
-
-            group.MapDelete("/{id:guid}", async (Guid id, ClaimsPrincipal user, IProjectService service) =>
+            .WithOpenApi(operation =>
             {
-                var userId = Guid.Parse(user.FindFirstValue(ClaimTypes.NameIdentifier)!);
-                await service.DeleteProjectAsync(id, userId);
-                return Results.NoContent();
+                operation.Summary = "Atualizar um projeto";
+                operation.Description = "Atualiza os dados de um projeto existente";
+                return operation;
+            });
+
+            group.MapDelete("/{id:guid}", async (Guid id, IProjectService projectService) =>
+            {
+                try
+                {
+                    var result = await projectService.DeleteAsync(id);
+                    return result ? Results.NoContent() : Results.NotFound();
+                }
+                catch (DomainException ex)
+                {
+                    return Results.BadRequest(new { message = ex.Message });
+                }
+                catch (Exception)
+                {
+                    return Results.StatusCode(500);
+                }
             })
             .WithName("DeleteProject")
-            .WithSummary("Remove um projeto")
-            .WithDescription("Remove um projeto se não houver tarefas pendentes associadas a ele.")
-            .Produces(StatusCodes.Status204NoContent)
-            .Produces(StatusCodes.Status400BadRequest);
+            .WithOpenApi(operation =>
+            {
+                operation.Summary = "Remover um projeto";
+                operation.Description = "Remove um projeto existente pelo ID";
+                return operation;
+            });
         }
     }
 }

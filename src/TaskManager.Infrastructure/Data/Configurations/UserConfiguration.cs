@@ -4,31 +4,20 @@ using TaskManager.Domain.Entities;
 
 namespace TaskManager.Infrastructure.Data.Configurations
 {
-    public class UserConfiguration : IEntityTypeConfiguration<User>
+    public class UserConfiguration : BaseEntityConfiguration<User>
     {
-        public void Configure(EntityTypeBuilder<User> builder)
+        public override void Configure(EntityTypeBuilder<User> builder)
         {
-            builder.HasKey(u => u.Id);
+            base.Configure(builder);
 
-            builder.Property(u => u.Name)
-                .HasMaxLength(100)
-                .IsRequired();
+            builder.Property(e => e.Name).IsRequired().HasMaxLength(100);
+            builder.Property(e => e.Email).IsRequired().HasMaxLength(255);
+            builder.HasIndex(e => e.Email).IsUnique();
 
-            builder.Property(u => u.Email)
-                .HasMaxLength(150)
-                .IsRequired();
-
-            builder.HasIndex(u => u.Email)
-                .IsUnique();
-
-            builder.Property(u => u.PasswordHash)
-                .HasMaxLength(255)
-                .IsRequired();
-
-            builder.HasMany(u => u.Projects)
-                .WithOne(p => p.User)
-                .HasForeignKey(p => p.UserId)
-                .OnDelete(DeleteBehavior.Cascade);
+            builder.HasMany(e => e.Projects)
+                  .WithOne(e => e.User)
+                  .HasForeignKey(e => e.UserId)
+                  .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

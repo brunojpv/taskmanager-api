@@ -1,139 +1,77 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Models;
-using System.Text;
+﻿using FluentValidation;
+using FluentValidation.AspNetCore;
 using TaskManager.Api.Endpoints;
-using TaskManager.Application.Interfaces;
-using TaskManager.Application.Services;
-using TaskManager.Application.Settings;
-using TaskManager.Domain.Interfaces;
-using TaskManager.Infrastructure.Data;
-using TaskManager.Infrastructure.Repositories;
-using TaskManager.Infrastructure.Security;
+using TaskManager.Domain.Exceptions;
+using TaskManager.Infrastructure.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add DbContext
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
-
-// Application/Domain services
-builder.Services.AddScoped<IAuthService, AuthService>();
-builder.Services.AddScoped<IUserRepository, UserRepository>();
-builder.Services.AddScoped<IProjectService, ProjectService>();
-builder.Services.AddScoped<IProjectRepository, ProjectRepository>();
-builder.Services.AddScoped<IActivityService, ActivityService>();
-builder.Services.AddScoped<IActivityRepository, ActivityRepository>();
-builder.Services.AddScoped<IActivityHistoryService, ActivityHistoryService>();
-builder.Services.AddScoped<IActivityHistoryRepository, ActivityHistoryRepository>();
-builder.Services.AddScoped<IActivityCommentService, ActivityCommentService>();
-builder.Services.AddScoped<IActivityCommentRepository, ActivityCommentRepository>();
-builder.Services.AddScoped<IReportService, ReportService>();
-builder.Services.AddScoped<IReportRepository, ReportRepository>();
-
-builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("Jwt"));
-builder.Services.AddSingleton<IValidateOptions<JwtSettings>, JwtSettingsValidator>();
-//builder.Services.AddSingleton<IConfigureOptions<JwtBearerOptions>, JwtBearerOptionsSetup>();
-//builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer();
-
-var jwtSettings = builder.Configuration.GetSection("Jwt").Get<JwtSettings>();
-
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
-            ValidIssuer = jwtSettings.Issuer,
-            ValidAudience = jwtSettings.Audience,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Key))
-        };
-
-        options.Events = new JwtBearerEvents
-        {
-            OnAuthenticationFailed = context =>
-            {
-                Console.WriteLine($"❌ Falha na autenticação: {context.Exception.Message}");
-                return Task.CompletedTask;
-            },
-            OnTokenValidated = context =>
-            {
-                Console.WriteLine($"✅ Token validado para: {context.Principal?.Identity?.Name ?? "usuário desconhecido"}");
-                return Task.CompletedTask;
-            }
-        };
-    });
-
-
-builder.Services.AddAuthorization();
-
-// Swagger
+// Add services to the container.
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(opt =>
+builder.Services.AddSwaggerGen(options =>
 {
-    opt.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
     {
-        Name = "Authorization",
-        Type = SecuritySchemeType.Http,
-        Scheme = "Bearer",
-        BearerFormat = "JWT",
-        In = ParameterLocation.Header,
-        Description = "JWT Authorization header usando o esquema Bearer"
-    });
-
-    opt.AddSecurityRequirement(new OpenApiSecurityRequirement
-    {
+        Title = "Task Manager API",
+        Version = "v1",
+        Description = "API para gerenciamento de tarefas e projetos",
+        Contact = new Microsoft.OpenApi.Models.OpenApiContact
         {
-            new OpenApiSecurityScheme
-            {
-                Reference = new OpenApiReference
-                {
-                    Id = "Bearer",
-                    Type = ReferenceType.SecurityScheme
-                }
-            },
-            Array.Empty<string>()
+            Name = "Bruno Vieira",
+            Email = "brunojpv@gmail.com"
         }
     });
-
-    var baseDir = AppContext.BaseDirectory;
-    opt.IncludeXmlComments(Path.Combine(baseDir, "TaskManager.Api.xml"), includeControllerXmlComments: true);
-    opt.IncludeXmlComments(Path.Combine(baseDir, "TaskManager.Application.xml"));
-    opt.IncludeXmlComments(Path.Combine(baseDir, "TaskManager.Domain.xml"));
-    opt.IncludeXmlComments(Path.Combine(baseDir, "TaskManager.Infrastructure.xml"));
 });
+
+// Adiciona serviços do TaskManager
+builder.Services.AddTaskManagerServices(builder.Configuration);
+
+// Add FluentValidation
+builder.Services.AddFluentValidationAutoValidation();
+builder.Services.AddFluentValidationClientsideAdapters();
+builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 
 var app = builder.Build();
 
-using (var scope = app.Services.CreateScope())
+// Configure the HTTP request pipeline.
+if (app.Environment.IsDevelopment())
 {
-    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    await DbSeeder.SeedAsync(dbContext);
+    app.UseSwagger();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "TaskManager API v1");
+        c.RoutePrefix = string.Empty; // Para servir a UI do Swagger na raiz
+        c.DefaultModelsExpandDepth(-1); // Oculta o esquema de modelo por padrão
+    });
 }
 
-// Middlewares
-app.UseSwagger();
-app.UseSwaggerUI(options =>
+app.UseHttpsRedirection();
+
+// Middleware para tratamento global de exceções
+app.Use(async (context, next) =>
 {
-    options.SwaggerEndpoint("/swagger/v1/swagger.json", "TaskManager API v1");
-    options.DocumentTitle = "TaskManager - API Docs";
-    options.RoutePrefix = string.Empty;
+    try
+    {
+        await next();
+    }
+    catch (DomainException ex)
+    {
+        context.Response.StatusCode = StatusCodes.Status400BadRequest;
+        await context.Response.WriteAsJsonAsync(new { message = ex.Message });
+    }
+    catch (Exception)
+    {
+        context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+        await context.Response.WriteAsJsonAsync(new { message = "Ocorreu um erro interno no servidor." });
+    }
 });
 
-app.UseAuthentication();
-app.UseAuthorization();
-
-// Endpoint Mappings
-app.MapAuthEndpoints();
+// Map endpoints
 app.MapProjectEndpoints();
-app.MapActivityEndpoints();
-app.MapActivityHistoryEndpoints();
-app.MapActivityCommentEndpoints();
+app.MapTaskEndpoints();
 app.MapReportEndpoints();
+
+// Ensure database is created and migrations are applied
+await app.Services.InitializeDatabaseAsync();
 
 await app.RunAsync();

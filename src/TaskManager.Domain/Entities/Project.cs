@@ -1,57 +1,58 @@
-﻿namespace TaskManager.Domain.Entities
+﻿using TaskManager.Domain.Enums;
+using TaskManager.Domain.Exceptions;
+
+namespace TaskManager.Domain.Entities
 {
     public class Project : BaseEntity
     {
-        public const int MaxActivities = 20;
-
-        public string Name { get; private set; } = string.Empty;
-        public string Description { get; private set; } = string.Empty;
+        public string Name { get; private set; }
+        public string Description { get; private set; }
         public Guid UserId { get; private set; }
+        public User User { get; private set; }
+        public List<TaskItem> Tasks { get; private set; } = new();
 
-        public User? User { get; set; }
-
-        private readonly List<Activity> _activities = new();
-        public IReadOnlyCollection<Activity> Activities => _activities;
-
-        protected Project() { }
+        private const int MaxTasksPerProject = 20;
 
         public Project(string name, string description, Guid userId)
         {
-            if (string.IsNullOrWhiteSpace(name))
-                throw new ArgumentException("Nome do projeto não pode ser vazio ou nulo.", nameof(name));
-
-            if (string.IsNullOrWhiteSpace(description))
-                throw new ArgumentException("Descrição do projeto não pode ser vazia ou nula.", nameof(description));
-
-            if (userId == Guid.Empty)
-                throw new ArgumentException("UserId não pode ser vazio.", nameof(userId));
-
             Name = name;
             Description = description;
             UserId = userId;
         }
 
-        public void UpdateDetails(string name, string description, Guid userId)
+        private Project() { }
+
+        public void AddTask(TaskItem task)
         {
-            if (string.IsNullOrWhiteSpace(name))
-                throw new ArgumentException("Nome do projeto não pode ser vazio ou nulo.", nameof(name));
+            if (Tasks.Count >= MaxTasksPerProject)
+            {
+                throw new DomainException("Limite máximo de 20 tarefas por projeto atingido.");
+            }
 
-            if (string.IsNullOrWhiteSpace(description))
-                throw new ArgumentException("Descrição do projeto não pode ser vazia ou nula.", nameof(description));
+            Tasks.Add(task);
+        }
 
-            if (userId == Guid.Empty)
-                throw new ArgumentException("UserId não pode ser vazio.", nameof(userId));
+        public void RemoveTask(Guid taskId)
+        {
+            var task = Tasks.FirstOrDefault(t => t.Id == taskId);
+            if (task == null)
+            {
+                throw new DomainException("Tarefa não encontrada.");
+            }
 
+            Tasks.Remove(task);
+        }
+
+        public bool HasPendingTasks()
+        {
+            return Tasks.Any(t => t.Status != TaskItemStatus.Completed);
+        }
+
+        public void Update(string name, string description)
+        {
             Name = name;
             Description = description;
-            UserId = userId;
+            SetUpdated();
         }
-
-        public void AddActivity(Activity activity)
-        {
-            _activities.Add(activity);
-        }
-
-        public bool CanAddNewActivity() => _activities.Count < MaxActivities;
     }
 }

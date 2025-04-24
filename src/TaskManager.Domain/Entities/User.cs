@@ -1,55 +1,29 @@
-﻿using TaskManager.Domain.Enums;
-
-namespace TaskManager.Domain.Entities
+﻿namespace TaskManager.Domain.Entities
 {
     /// <summary>
     /// Representa um usuário do sistema.
     /// </summary>
     public class User : BaseEntity
     {
-        public string Name { get; private set; } = string.Empty;
-        public string Email { get; private set; } = string.Empty;
-        public string PasswordHash { get; private set; } = string.Empty;
-        public UserRole Role { get; private set; } = UserRole.Regular;
+        public string Name { get; private set; }
+        public string Email { get; private set; }
+        public bool IsManager { get; private set; }
+        public List<Project> Projects { get; private set; } = new();
 
-        private readonly List<Project> _projects = new();
-        public IReadOnlyCollection<Project> Projects => _projects;
-
-        protected User() { }
-
-        public User(string name, string email, string passwordHash)
+        public User(string name, string email, bool isManager = false)
         {
-            if (string.IsNullOrWhiteSpace(name))
-                throw new ArgumentException("Nome não pode ser vazio ou nulo.", nameof(name));
-
-            if (string.IsNullOrWhiteSpace(email))
-                throw new ArgumentException("Email não pode ser vazio ou nulo.", nameof(email));
-
-            if (string.IsNullOrWhiteSpace(passwordHash))
-                throw new ArgumentException("Hash da senha não pode ser vazio ou nulo.", nameof(passwordHash));
-
             Name = name;
             Email = email;
-            PasswordHash = passwordHash;
+            IsManager = isManager;
         }
 
-        public static User Create(string name, string email, string passwordHash)
+        public void Update(string name, string email)
         {
-            if (string.IsNullOrWhiteSpace(name))
-                throw new ArgumentException("Nome não pode ser vazio ou nulo.", nameof(name));
-
-            if (string.IsNullOrWhiteSpace(email))
-                throw new ArgumentException("Email não pode ser vazio ou nulo.", nameof(email));
-
-            if (string.IsNullOrWhiteSpace(passwordHash))
-                throw new ArgumentException("Hash da senha não pode ser vazio ou nulo.", nameof(passwordHash));
-
-            return new User(name, email, passwordHash);
+            Name = name;
+            Email = email;
+            SetUpdated();
         }
 
-        public void AddProject(Project project)
-        {
-            _projects.Add(project);
-        }
+        private User() { }
     }
 }

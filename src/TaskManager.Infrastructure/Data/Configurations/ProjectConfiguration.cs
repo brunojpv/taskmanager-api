@@ -4,25 +4,19 @@ using TaskManager.Domain.Entities;
 
 namespace TaskManager.Infrastructure.Data.Configurations
 {
-    internal class ProjectConfiguration : IEntityTypeConfiguration<Project>
+    public class ProjectConfiguration : BaseEntityConfiguration<Project>
     {
-        public void Configure(EntityTypeBuilder<Project> builder)
+        public override void Configure(EntityTypeBuilder<Project> builder)
         {
-            builder.HasKey(p => p.Id);
+            base.Configure(builder);
 
-            builder.Property(p => p.Name)
-                .HasMaxLength(100)
-                .IsRequired();
+            builder.Property(e => e.Name).IsRequired().HasMaxLength(100);
+            builder.Property(e => e.Description).HasMaxLength(500);
 
-            builder.Property(p => p.Description)
-                .HasMaxLength(255)
-                .IsRequired();
-
-            builder.HasOne(p => p.User)
-                .WithMany(u => u.Projects)
-                .HasForeignKey(p => p.UserId)
-                .IsRequired()
-                .OnDelete(DeleteBehavior.Cascade);
+            builder.HasMany(e => e.Tasks)
+                  .WithOne(e => e.Project)
+                  .HasForeignKey(e => e.ProjectId)
+                  .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

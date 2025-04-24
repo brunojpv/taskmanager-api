@@ -1,28 +1,27 @@
-﻿using Microsoft.EntityFrameworkCore;
-using TaskManager.Domain.Entities;
-using TaskManager.Domain.Interfaces;
+﻿using TaskManager.Domain.Entities;
+using TaskManager.Domain.Repositories;
 using TaskManager.Infrastructure.Data;
 
 namespace TaskManager.Infrastructure.Repositories
 {
     public class UserRepository : IUserRepository
     {
-        private readonly AppDbContext _context;
+        private readonly TaskManagerDbContext _dbContext;
 
-        public UserRepository(AppDbContext context)
+        public UserRepository(TaskManagerDbContext dbContext)
         {
-            _context = context;
+            _dbContext = dbContext;
         }
 
-        public async Task<User?> GetByEmailAsync(string? email)
+        public async Task<User> GetByIdAsync(Guid id)
         {
-            return await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+            return await _dbContext.Users.FindAsync(id);
         }
 
-        public async Task AddAsync(User user)
+        public async Task<bool> IsManagerAsync(Guid userId)
         {
-            _context.Users.Add(user);
-            await _context.SaveChangesAsync();
+            var user = await _dbContext.Users.FindAsync(userId);
+            return user?.IsManager ?? false;
         }
     }
 }

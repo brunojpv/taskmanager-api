@@ -1,69 +1,114 @@
-﻿using TaskManager.Application.DTOs.Project;
-using TaskManager.Application.Interfaces;
+﻿using TaskManager.Application.DTOs;
 using TaskManager.Domain.Entities;
-using TaskManager.Domain.Enums;
 using TaskManager.Domain.Exceptions;
-using TaskManager.Domain.Interfaces;
+using TaskManager.Domain.Repositories;
 
 namespace TaskManager.Application.Services
 {
     public class ProjectService : IProjectService
     {
-        private readonly IProjectRepository _repository;
+        private readonly IProjectRepository _projectRepository;
 
-        public ProjectService(IProjectRepository repository)
+        public ProjectService(IProjectRepository projectRepository)
         {
-            _repository = repository;
+            _projectRepository = projectRepository;
         }
 
-        public Task<IEnumerable<Project>> GetAllAsync(Guid userId) => _repository.GetAllAsync(userId);
-
-        public Task<Project?> GetByIdAsync(Guid id) => _repository.GetByIdAsync(id);
-
-        public Task AddAsync(Project project) => _repository.AddAsync(project);
-
-        public Task UpdateAsync(Project project) => _repository.UpdateAsync(project);
-
-        public Task DeleteAsync(Guid id) => _repository.DeleteAsync(id);
-
-        public async Task<Project> CreateProjectAsync(CreateProjectDto dto, Guid userId)
+        public async Task<List<ProjectDTO>> GetAllByUserIdAsync(Guid userId)
         {
-            var project = new Project(dto.Name, dto.Description, userId);
+            var projects = await _projectRepository.GetAllByUserIdAsync(userId);
 
-            await _repository.AddAsync(project);
+            var projectDtos = new List<ProjectDTO>();
+            foreach (var project in projects)
+            {
+                var taskCount = await _projectRepository.CountTasksAsync(project.Id);
 
-            return project;
+                projectDtos.Add(new ProjectDTO
+                {
+                    Id = project.Id,
+                    Name = project.Name,
+                    Description = project.Description,
+                    CreatedAt = project.CreatedAt,
+                    TaskCount = taskCount
+                });
+            }
+
+            return projectDtos;
         }
 
-        public async Task UpdateProjectAsync(Guid projectId, UpdateProjectDto dto, Guid userId)
+        public async Task<ProjectDTO> GetByIdAsync(Guid id)
         {
-            var project = await _repository.GetByIdAsync(projectId) ?? throw new NotFoundException("Project not found.");
+            var project = await _projectRepository.GetByIdWithTasksAsync(id);
+            if (project == null)
+            {
+                throw new DomainException("Projeto não encontrado.");
+            }
 
-            var changes = new List<string>();
-
-            if (project.Name != dto.Name)
-                changes.Add($"Title changed from '{project.Name}' to '{dto.Name}'.");
-
-            if (project.Description != dto.Description)
-                changes.Add($"Description changed.");
-
-            project.UpdateDetails(dto.Name, dto.Description, userId);
-
-            await _repository.UpdateAsync(project);
+            return new ProjectDTO
+            {
+                Id = project.Id,
+                Name = project.Name,
+                Description = project.Description,
+                CreatedAt = project.CreatedAt,
+                TaskCount = project.Tasks.Count
+            };
         }
 
-        public async Task DeleteProjectAsync(Guid projectId, Guid userId)
+        public async Task<ProjectDTO> CreateAsync(ProjectCreateDTO projectDto)
         {
-            var project = await _repository.GetByIdAsync(projectId) ?? throw new NotFoundException("Project not found.");
+            var project = new Project(
+                projectDto.Name,
+                projectDto.Description,
+                projectDto.UserId
+            );
 
-            if (project.UserId != userId)
-                throw new NotFoundException("User not found.");
+            await _projectRepository.AddAsync(project);
 
-            bool hasPendingActivities = project.Activities.Any(a => a.Status != ActivityStatus.Completed);
-            if (hasPendingActivities)
-                throw new InvalidOperationException("Cannot delete project with pending activities. Complete or delete these activities first.");
+            return new ProjectDTO
+            {
+                Id = project.Id,
+                Name = project.Name,
+                Description = project.Description,
+                CreatedAt = project.CreatedAt,
+                TaskCount = 0
+            };
+        }
 
-            await _repository.DeleteAsync(projectId);
+        public async Task<ProjectDTO> UpdateAsync(ProjectUpdateDTO projectDto)
+        {
+            var project = await _projectRepository.GetByIdWithTasksAsync(projectDto.Id);
+            if (project == null)
+            {
+                throw new DomainException("Projeto não encontrado.");
+            }
+
+            project.Update(projectDto.Name, projectDto.Description);
+            await _projectRepository.UpdateAsync(project);
+
+            return new ProjectDTO
+            {
+                Id = project.Id,
+                Name = project.Name,
+                Description = project.Description,
+                CreatedAt = project.CreatedAt,
+                TaskCount = project.Tasks.Count
+            };
+        }
+
+        public async Task<bool> DeleteAsync(Guid id)
+        {
+            var project = await _projectRepository.GetByIdWithTasksAsync(id);
+            if (project == null)
+            {
+                throw new DomainException("Projeto não encontrado.");
+            }
+
+            if (project.HasPendingTasks())
+            {
+                throw new DomainException("Não é possível remover um projeto com tarefas pendentes. Complete ou remova as tarefas primeiro.");
+            }
+
+            return await _projectRepository.DeleteAsync(id);
         }
     }
 }
