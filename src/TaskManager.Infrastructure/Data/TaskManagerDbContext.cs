@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using TaskManager.Domain.Entities;
 using TaskManager.Infrastructure.Data.Configurations;
+using TaskManager.Infrastructure.Data.Seed;
 
 namespace TaskManager.Infrastructure.Data
 {
@@ -21,14 +22,12 @@ namespace TaskManager.Infrastructure.Data
         {
             base.OnModelCreating(modelBuilder);
 
-            // Aplicar configurações de entidades
             modelBuilder.ApplyConfiguration(new UserConfiguration());
             modelBuilder.ApplyConfiguration(new ProjectConfiguration());
             modelBuilder.ApplyConfiguration(new TaskItemConfiguration());
             modelBuilder.ApplyConfiguration(new TaskHistoryEntryConfiguration());
             modelBuilder.ApplyConfiguration(new TaskCommentConfiguration());
 
-            // Seed de dados
             DatabaseSeed.SeedData(modelBuilder);
         }
     }

@@ -2,10 +2,13 @@
 using TaskManager.Domain.Entities;
 using TaskManager.Domain.Enums;
 
-namespace TaskManager.Infrastructure.Data
+namespace TaskManager.Infrastructure.Data.Seed
 {
     public static class DatabaseSeed
     {
+        // Data fixa de referência para evitar valores dinâmicos
+        private static readonly DateTime BaseDate = new DateTime(2023, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+
         public static void SeedData(ModelBuilder modelBuilder)
         {
             SeedUsers(modelBuilder);
@@ -17,8 +20,8 @@ namespace TaskManager.Infrastructure.Data
 
         private static void SeedUsers(ModelBuilder modelBuilder)
         {
-            var userId1 = Guid.NewGuid();
-            var userId2 = Guid.NewGuid();
+            var userId1 = new Guid("11111111-1111-1111-1111-111111111111");
+            var userId2 = new Guid("22222222-2222-2222-2222-222222222222");
 
             modelBuilder.Entity<User>().HasData(
                 new
@@ -27,7 +30,7 @@ namespace TaskManager.Infrastructure.Data
                     Name = "Usuário Comum",
                     Email = "usuario@exemplo.com",
                     IsManager = false,
-                    CreatedAt = DateTime.UtcNow,
+                    CreatedAt = BaseDate,
                     UpdatedAt = (DateTime?)null
                 },
                 new
@@ -36,7 +39,7 @@ namespace TaskManager.Infrastructure.Data
                     Name = "Gerente",
                     Email = "gerente@exemplo.com",
                     IsManager = true,
-                    CreatedAt = DateTime.UtcNow,
+                    CreatedAt = BaseDate,
                     UpdatedAt = (DateTime?)null
                 }
             );
@@ -47,8 +50,8 @@ namespace TaskManager.Infrastructure.Data
 
         private static void SeedProjects(ModelBuilder modelBuilder)
         {
-            var projectId1 = Guid.NewGuid();
-            var projectId2 = Guid.NewGuid();
+            var projectId1 = new Guid("33333333-3333-3333-3333-333333333333");
+            var projectId2 = new Guid("44444444-4444-4444-4444-444444444444");
 
             modelBuilder.Entity<Project>().HasData(
                 new
@@ -56,7 +59,7 @@ namespace TaskManager.Infrastructure.Data
                     Id = projectId1,
                     Name = "Projeto Demo 1",
                     Description = "Este é um projeto de demonstração",
-                    CreatedAt = DateTime.UtcNow.AddDays(-10),
+                    CreatedAt = BaseDate.AddDays(-10),
                     UpdatedAt = (DateTime?)null,
                     UserId = UserSeeds.UserId1
                 },
@@ -65,7 +68,7 @@ namespace TaskManager.Infrastructure.Data
                     Id = projectId2,
                     Name = "Projeto Demo 2",
                     Description = "Este é outro projeto de demonstração",
-                    CreatedAt = DateTime.UtcNow.AddDays(-5),
+                    CreatedAt = BaseDate.AddDays(-5),
                     UpdatedAt = (DateTime?)null,
                     UserId = UserSeeds.UserId2
                 }
@@ -77,8 +80,8 @@ namespace TaskManager.Infrastructure.Data
 
         private static void SeedTasks(ModelBuilder modelBuilder)
         {
-            var taskId1 = Guid.NewGuid();
-            var taskId2 = Guid.NewGuid();
+            var taskId1 = new Guid("55555555-5555-5555-5555-555555555555");
+            var taskId2 = new Guid("66666666-6666-6666-6666-666666666666");
 
             modelBuilder.Entity<TaskItem>().HasData(
                 new
@@ -86,9 +89,9 @@ namespace TaskManager.Infrastructure.Data
                     Id = taskId1,
                     Title = "Tarefa Demo 1",
                     Description = "Esta é uma tarefa de demonstração",
-                    CreatedAt = DateTime.UtcNow.AddDays(-9),
+                    CreatedAt = BaseDate.AddDays(-9),
                     UpdatedAt = (DateTime?)null,
-                    DueDate = DateTime.UtcNow.AddDays(5),
+                    DueDate = BaseDate.AddDays(5),
                     Status = TaskItemStatus.Pending,
                     Priority = TaskPriority.Medium,
                     ProjectId = ProjectSeeds.ProjectId1
@@ -98,9 +101,9 @@ namespace TaskManager.Infrastructure.Data
                     Id = taskId2,
                     Title = "Tarefa Demo 2",
                     Description = "Esta é outra tarefa de demonstração",
-                    CreatedAt = DateTime.UtcNow.AddDays(-4),
-                    UpdatedAt = DateTime.UtcNow.AddDays(-2),
-                    DueDate = DateTime.UtcNow.AddDays(10),
+                    CreatedAt = BaseDate.AddDays(-4),
+                    UpdatedAt = BaseDate.AddDays(-2),
+                    DueDate = BaseDate.AddDays(10),
                     Status = TaskItemStatus.InProgress,
                     Priority = TaskPriority.High,
                     ProjectId = ProjectSeeds.ProjectId2
@@ -116,33 +119,33 @@ namespace TaskManager.Infrastructure.Data
             modelBuilder.Entity<TaskHistoryEntry>().HasData(
                 new
                 {
-                    Id = Guid.NewGuid(),
+                    Id = new Guid("77777777-7777-7777-7777-777777777777"),
                     Action = "Tarefa criada",
-                    Details = (string)null,
-                    Timestamp = DateTime.UtcNow.AddDays(-9),
-                    CreatedAt = DateTime.UtcNow.AddDays(-9),
+                    Details = "Tarefa criada inicialmente",
+                    Timestamp = BaseDate.AddDays(-9),
+                    CreatedAt = BaseDate.AddDays(-9),
                     UpdatedAt = (DateTime?)null,
                     TaskId = TaskSeeds.TaskId1,
                     UserId = (Guid?)null
                 },
                 new
                 {
-                    Id = Guid.NewGuid(),
+                    Id = new Guid("88888888-8888-8888-8888-888888888888"),
                     Action = "Tarefa criada",
-                    Details = (string)null,
-                    Timestamp = DateTime.UtcNow.AddDays(-4),
-                    CreatedAt = DateTime.UtcNow.AddDays(-4),
+                    Details = "Tarefa inicial",
+                    Timestamp = BaseDate.AddDays(-4),
+                    CreatedAt = BaseDate.AddDays(-4),
                     UpdatedAt = (DateTime?)null,
                     TaskId = TaskSeeds.TaskId2,
                     UserId = (Guid?)null
                 },
                 new
                 {
-                    Id = Guid.NewGuid(),
+                    Id = new Guid("99999999-9999-9999-9999-999999999999"),
                     Action = "Status alterado",
                     Details = "Status alterado de Pending para InProgress",
-                    Timestamp = DateTime.UtcNow.AddDays(-2),
-                    CreatedAt = DateTime.UtcNow.AddDays(-2),
+                    Timestamp = BaseDate.AddDays(-2),
+                    CreatedAt = BaseDate.AddDays(-2),
                     UpdatedAt = (DateTime?)null,
                     TaskId = TaskSeeds.TaskId2,
                     UserId = UserSeeds.UserId2
@@ -155,18 +158,18 @@ namespace TaskManager.Infrastructure.Data
             modelBuilder.Entity<TaskComment>().HasData(
                 new
                 {
-                    Id = Guid.NewGuid(),
+                    Id = new Guid("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
                     Content = "Este é um comentário de demonstração",
-                    CreatedAt = DateTime.UtcNow.AddDays(-8),
+                    CreatedAt = BaseDate.AddDays(-8),
                     UpdatedAt = (DateTime?)null,
                     TaskId = TaskSeeds.TaskId1,
                     UserId = UserSeeds.UserId1
                 },
                 new
                 {
-                    Id = Guid.NewGuid(),
+                    Id = new Guid("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"),
                     Content = "Este é outro comentário de demonstração",
-                    CreatedAt = DateTime.UtcNow.AddDays(-3),
+                    CreatedAt = BaseDate.AddDays(-3),
                     UpdatedAt = (DateTime?)null,
                     TaskId = TaskSeeds.TaskId2,
                     UserId = UserSeeds.UserId2
