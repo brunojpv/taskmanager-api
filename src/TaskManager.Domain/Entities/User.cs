@@ -17,6 +17,13 @@
             IsManager = isManager;
         }
 
+        public User(Guid id, string name, string email, bool isManager = false) : base(id)
+        {
+            Name = name;
+            Email = email;
+            IsManager = isManager;
+        }
+
         public void Update(string name, string email)
         {
             Name = name;

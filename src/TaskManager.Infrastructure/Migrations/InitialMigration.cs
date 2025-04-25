@@ -1,14 +1,12 @@
-﻿using System;
-using Microsoft.EntityFrameworkCore.Migrations;
-
-#nullable disable
+﻿using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace TaskManager.Infrastructure.Migrations
 {
-    /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    /// <summary>
+    /// Migração inicial que cria todas as tabelas do banco de dados
+    /// </summary>
+    public partial class InitialMigration : Migration
     {
-        /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
@@ -17,9 +15,8 @@ namespace TaskManager.Infrastructure.Migrations
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
-                    Email = table.Column<string>(type: "character varying(150)", maxLength: 150, nullable: false),
-                    PasswordHash = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
-                    Role = table.Column<int>(type: "integer", nullable: false),
+                    Email = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
+                    IsManager = table.Column<bool>(type: "boolean", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
@@ -34,7 +31,7 @@ namespace TaskManager.Infrastructure.Migrations
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
-                    Description = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
+                    Description = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
                     UserId = table.Column<Guid>(type: "uuid", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
@@ -51,24 +48,24 @@ namespace TaskManager.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Activities",
+                name: "Tasks",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Title = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
-                    Description = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: false),
-                    DueDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    Status = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
-                    Priority = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
+                    Description = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
+                    DueDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    Status = table.Column<string>(type: "text", nullable: false),
+                    Priority = table.Column<string>(type: "text", nullable: false),
                     ProjectId = table.Column<Guid>(type: "uuid", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Activities", x => x.Id);
+                    table.PrimaryKey("PK_Tasks", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Activities_Projects_ProjectId",
+                        name: "FK_Tasks_Projects_ProjectId",
                         column: x => x.ProjectId,
                         principalTable: "Projects",
                         principalColumn: "Id",
@@ -76,88 +73,92 @@ namespace TaskManager.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "ActivityComments",
+                name: "TaskComments",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    ActivityId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Content = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
+                    TaskId = table.Column<Guid>(type: "uuid", nullable: false),
                     UserId = table.Column<Guid>(type: "uuid", nullable: false),
-                    Content = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ActivityComments", x => x.Id);
+                    table.PrimaryKey("PK_TaskComments", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_ActivityComments_Activities_ActivityId",
-                        column: x => x.ActivityId,
-                        principalTable: "Activities",
+                        name: "FK_TaskComments_Tasks_TaskId",
+                        column: x => x.TaskId,
+                        principalTable: "Tasks",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_ActivityComments_Users_UserId",
+                        name: "FK_TaskComments_Users_UserId",
                         column: x => x.UserId,
                         principalTable: "Users",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
-                name: "ActivityHistories",
+                name: "TaskHistoryEntries",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    ActivityId = table.Column<Guid>(type: "uuid", nullable: false),
-                    Description = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
-                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Action = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    Details = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
+                    Timestamp = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    TaskId = table.Column<Guid>(type: "uuid", nullable: false),
+                    UserId = table.Column<Guid>(type: "uuid", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ActivityHistories", x => x.Id);
+                    table.PrimaryKey("PK_TaskHistoryEntries", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_ActivityHistories_Activities_ActivityId",
-                        column: x => x.ActivityId,
-                        principalTable: "Activities",
+                        name: "FK_TaskHistoryEntries_Tasks_TaskId",
+                        column: x => x.TaskId,
+                        principalTable: "Tasks",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_ActivityHistories_Users_UserId",
+                        name: "FK_TaskHistoryEntries_Users_UserId",
                         column: x => x.UserId,
                         principalTable: "Users",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
                 });
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Activities_ProjectId",
-                table: "Activities",
-                column: "ProjectId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_ActivityComments_ActivityId",
-                table: "ActivityComments",
-                column: "ActivityId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_ActivityComments_UserId",
-                table: "ActivityComments",
-                column: "UserId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_ActivityHistories_ActivityId",
-                table: "ActivityHistories",
-                column: "ActivityId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_ActivityHistories_UserId",
-                table: "ActivityHistories",
-                column: "UserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Projects_UserId",
                 table: "Projects",
                 column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_TaskComments_TaskId",
+                table: "TaskComments",
+                column: "TaskId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_TaskComments_UserId",
+                table: "TaskComments",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_TaskHistoryEntries_TaskId",
+                table: "TaskHistoryEntries",
+                column: "TaskId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_TaskHistoryEntries_UserId",
+                table: "TaskHistoryEntries",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Tasks_ProjectId",
+                table: "Tasks",
+                column: "ProjectId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Users_Email",
@@ -166,17 +167,16 @@ namespace TaskManager.Infrastructure.Migrations
                 unique: true);
         }
 
-        /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "ActivityComments");
+                name: "TaskComments");
 
             migrationBuilder.DropTable(
-                name: "ActivityHistories");
+                name: "TaskHistoryEntries");
 
             migrationBuilder.DropTable(
-                name: "Activities");
+                name: "Tasks");
 
             migrationBuilder.DropTable(
                 name: "Projects");

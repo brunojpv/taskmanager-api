@@ -13,20 +13,24 @@ namespace TaskManager.Infrastructure.Extensions
     {
         public static IServiceCollection AddTaskManagerServices(this IServiceCollection services, IConfiguration configuration)
         {
+            // Registra o DbContext
             services.AddDbContext<TaskManagerDbContext>(options =>
                 options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
 
+            // Registra repositórios
             services.AddScoped<IProjectRepository, ProjectRepository>();
             services.AddScoped<ITaskRepository, TaskRepository>();
             services.AddScoped<ITaskHistoryRepository, TaskHistoryRepository>();
             services.AddScoped<ITaskCommentRepository, TaskCommentRepository>();
             services.AddScoped<IUserRepository, UserRepository>();
-            services.AddScoped<IReportRepository, ReportRepository>();
+            services.AddScoped<IReportRepository, ReportRepository>(); // Adicionado o novo repositório
 
+            // Registra serviços
             services.AddScoped<IProjectService, ProjectService>();
             services.AddScoped<ITaskService, TaskService>();
             services.AddScoped<IReportService, ReportService>();
 
+            // Registra SeedFactory
             services.AddScoped<SeedFactory>();
 
             return services;
@@ -37,12 +41,15 @@ namespace TaskManager.Infrastructure.Extensions
             using var scope = serviceProvider.CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<TaskManagerDbContext>();
 
-            await dbContext.Database.EnsureCreatedAsync();
+            // Aplica todas as migrações pendentes
+            await dbContext.Database.MigrateAsync();
 
+            // Verifica se já existem dados no banco
             bool databaseIsEmpty = !await dbContext.Users.AnyAsync();
 
             if (databaseIsEmpty)
             {
+                // Seed inicial usando SeedFactory
                 var seedFactory = scope.ServiceProvider.GetRequiredService<SeedFactory>();
                 await seedFactory.CreateSampleDataAsync();
             }
