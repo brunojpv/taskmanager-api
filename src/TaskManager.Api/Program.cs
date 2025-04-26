@@ -45,8 +45,6 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-app.UseHttpsRedirection();
-
 // Middleware para tratamento global de exceções
 app.Use(async (context, next) =>
 {
