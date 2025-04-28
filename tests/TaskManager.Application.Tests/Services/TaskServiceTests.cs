@@ -1,4 +1,5 @@
-﻿using Moq;
+﻿using AutoMapper;
+using Moq;
 using TaskManager.Application.DTOs;
 using TaskManager.Application.Services;
 using TaskManager.Domain.Entities;
@@ -16,6 +17,7 @@ namespace TaskManager.Application.Tests.Services
         private readonly Mock<ITaskHistoryRepository> _mockHistoryRepository;
         private readonly Mock<ITaskCommentRepository> _mockCommentRepository;
         private readonly Mock<IUserRepository> _mockUserRepository;
+        private readonly Mock<IMapper> _mockMapper;
         private readonly TaskService _taskService;
 
         public TaskServiceTests()
@@ -25,13 +27,15 @@ namespace TaskManager.Application.Tests.Services
             _mockHistoryRepository = new Mock<ITaskHistoryRepository>();
             _mockCommentRepository = new Mock<ITaskCommentRepository>();
             _mockUserRepository = new Mock<IUserRepository>();
+            _mockMapper = new Mock<IMapper>();
 
             _taskService = new TaskService(
                 _mockTaskRepository.Object,
                 _mockProjectRepository.Object,
                 _mockHistoryRepository.Object,
                 _mockCommentRepository.Object,
-                _mockUserRepository.Object);
+                _mockUserRepository.Object,
+                _mockMapper.Object);
         }
 
         [Fact]
@@ -40,7 +44,6 @@ namespace TaskManager.Application.Tests.Services
             // Arrange
             var projectId = Guid.NewGuid();
 
-            // Usar o ProjectBuilder para criar um projeto com ID personalizado
             var project = new ProjectBuilder()
                 .WithName("Test Project")
                 .WithDescription("Test Description")
@@ -65,6 +68,21 @@ namespace TaskManager.Application.Tests.Services
                 .Callback<TaskItem>(t => savedTask = t)
                 .ReturnsAsync((TaskItem t) => t);
 
+            _mockMapper.Setup(m => m.Map<TaskDTO>(It.IsAny<TaskItem>()))
+                .Returns((TaskItem source) => new TaskDTO
+                {
+                    Id = source.Id,
+                    Title = source.Title,
+                    Description = source.Description,
+                    DueDate = source.DueDate,
+                    Status = source.Status,
+                    Priority = source.Priority,
+                    ProjectId = source.ProjectId,
+                    CreatedAt = source.CreatedAt,
+                    UpdatedAt = source.UpdatedAt,
+                    Comments = new List<TaskCommentDTO>()
+                });
+
             // Act
             var result = await _taskService.CreateAsync(taskDto);
 
@@ -76,11 +94,8 @@ namespace TaskManager.Application.Tests.Services
             Assert.Equal(taskDto.Priority, result.Priority);
             Assert.Equal(TaskItemStatus.Pending, result.Status);
             Assert.Equal(taskDto.ProjectId, result.ProjectId);
-
-            // Verify task was added to project
             Assert.Single(project.Tasks);
 
-            // Verify repository was called
             _mockTaskRepository.Verify(r => r.AddAsync(It.Is<TaskItem>(
                 t => t.Title == taskDto.Title &&
                      t.Description == taskDto.Description &&
@@ -93,10 +108,8 @@ namespace TaskManager.Application.Tests.Services
         [Fact]
         public async Task CreateAsync_WhenProjectHas20Tasks_ShouldThrowException()
         {
-            // Arrange
             var projectId = Guid.NewGuid();
 
-            // Usar o ProjectBuilder para criar um projeto com ID personalizado
             var project = new ProjectBuilder()
                 .WithName("Test Project")
                 .WithDescription("Test Description")
@@ -104,7 +117,6 @@ namespace TaskManager.Application.Tests.Services
                 .WithId(projectId)
                 .Build();
 
-            // Add 20 tasks to the project
             for (int i = 0; i < 20; i++)
             {
                 var task = new TaskItemBuilder()
@@ -130,26 +142,24 @@ namespace TaskManager.Application.Tests.Services
             _mockProjectRepository.Setup(r => r.GetByIdWithTasksAsync(projectId))
                 .ReturnsAsync(project);
 
-            // Act & Assert
             var exception = await Assert.ThrowsAsync<DomainException>(
                 () => _taskService.CreateAsync(taskDto));
 
             Assert.Equal("Limite máximo de 20 tarefas por projeto atingido.",
                 exception.Message);
 
-            // Verify the repository method was not called
             _mockTaskRepository.Verify(r => r.AddAsync(It.IsAny<TaskItem>()), Times.Never);
+
+            _mockMapper.Verify(m => m.Map<TaskDTO>(It.IsAny<TaskItem>()), Times.Never);
         }
 
         [Fact]
         public async Task UpdateAsync_WithValidData_ShouldUpdateTask()
         {
-            // Arrange
             var taskId = Guid.NewGuid();
             var projectId = Guid.NewGuid();
             var userId = Guid.NewGuid();
 
-            // Usar o TaskItemBuilder para criar uma tarefa com ID personalizado
             var task = new TaskItemBuilder()
                 .WithTitle("Original Task")
                 .WithDescription("Original Description")
@@ -169,6 +179,18 @@ namespace TaskManager.Application.Tests.Services
                 UserId = userId
             };
 
+            var expectedTaskDto = new TaskDTO
+            {
+                Id = taskId,
+                Title = "Updated Task",
+                Description = "Updated Description",
+                DueDate = DateTime.Now.AddDays(2),
+                Status = TaskItemStatus.InProgress,
+                Priority = TaskPriority.Medium,
+                ProjectId = projectId,
+                Comments = new List<TaskCommentDTO>()
+            };
+
             _mockTaskRepository.Setup(r => r.GetByIdAsync(taskId))
                 .ReturnsAsync(task);
             _mockTaskRepository.Setup(r => r.UpdateAsync(It.IsAny<TaskItem>()))
@@ -176,34 +198,35 @@ namespace TaskManager.Application.Tests.Services
             _mockCommentRepository.Setup(r => r.GetAllByTaskIdAsync(taskId))
                 .ReturnsAsync(new List<TaskComment>());
 
-            // Act
+            _mockMapper.Setup(m => m.Map<TaskDTO>(It.IsAny<TaskItem>()))
+                .Returns(expectedTaskDto);
+            _mockMapper.Setup(m => m.Map<List<TaskCommentDTO>>(It.IsAny<List<TaskComment>>()))
+                .Returns(new List<TaskCommentDTO>());
+
             var result = await _taskService.UpdateAsync(taskDto);
 
-            // Assert
             Assert.NotNull(result);
             Assert.Equal(taskDto.Title, result.Title);
             Assert.Equal(taskDto.Description, result.Description);
             Assert.Equal(taskDto.DueDate, result.DueDate);
             Assert.Equal(taskDto.Status, result.Status);
-
-            // Verify task object was updated
             Assert.Equal(taskDto.Title, task.Title);
             Assert.Equal(taskDto.Description, task.Description);
             Assert.Equal(taskDto.DueDate, task.DueDate);
             Assert.Equal(taskDto.Status, task.Status);
 
-            // Verify the repository method was called
             _mockTaskRepository.Verify(r => r.UpdateAsync(task), Times.Once);
+
+            _mockMapper.Verify(m => m.Map<TaskDTO>(It.IsAny<TaskItem>()), Times.Once);
+            _mockMapper.Verify(m => m.Map<List<TaskCommentDTO>>(It.IsAny<List<TaskComment>>()), Times.Once);
         }
 
         [Fact]
         public async Task DeleteAsync_WithValidId_ShouldDeleteTask()
         {
-            // Arrange
             var taskId = Guid.NewGuid();
             var projectId = Guid.NewGuid();
 
-            // Usar o TaskItemBuilder para criar uma tarefa com ID personalizado
             var task = new TaskItemBuilder()
                 .WithTitle("Test Task")
                 .WithDescription("Test Description")
@@ -213,7 +236,6 @@ namespace TaskManager.Application.Tests.Services
                 .WithId(taskId)
                 .Build();
 
-            // Usar o ProjectBuilder para criar um projeto com ID personalizado
             var project = new ProjectBuilder()
                 .WithName("Test Project")
                 .WithDescription("Test Description")
@@ -228,18 +250,15 @@ namespace TaskManager.Application.Tests.Services
                 .ReturnsAsync(project);
             _mockProjectRepository.Setup(r => r.UpdateAsync(It.IsAny<Project>()))
                 .Returns(Task.CompletedTask);
-            _mockTaskRepository.Setup(r => r.DeleteAsync(taskId))
+            _mockTaskRepository.Setup(r => r.DeleteAsync(task))
                 .ReturnsAsync(true);
 
-            // Act
             var result = await _taskService.DeleteAsync(taskId);
 
-            // Assert
             Assert.True(result);
 
-            // Verify repository methods were called
             _mockProjectRepository.Verify(r => r.UpdateAsync(project), Times.Once);
-            _mockTaskRepository.Verify(r => r.DeleteAsync(taskId), Times.Once);
+            _mockTaskRepository.Verify(r => r.DeleteAsync(task), Times.Once);
         }
     }
 }

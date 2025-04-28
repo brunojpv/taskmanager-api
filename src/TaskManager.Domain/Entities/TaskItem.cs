@@ -22,8 +22,6 @@ namespace TaskManager.Domain.Entities
             Status = TaskItemStatus.Pending;
             Priority = priority;
             ProjectId = projectId;
-
-            AddHistoryEntry("Tarefa criada", null, null);
         }
 
         private TaskItem() { }
@@ -36,13 +34,9 @@ namespace TaskManager.Domain.Entities
             var oldStatus = Status;
             Status = newStatus;
             SetUpdated();
-
-            AddHistoryEntry("Status alterado",
-                $"Status alterado de {oldStatus} para {newStatus}",
-                userId);
         }
 
-        public void UpdateDetails(string title, string description, DateTime? dueDate, Guid userId)
+        public List<string> UpdateDetails(string title, string description, DateTime? dueDate, TaskItemStatus status, Guid userId)
         {
             var changes = new List<string>();
 
@@ -64,11 +58,16 @@ namespace TaskManager.Domain.Entities
                 DueDate = dueDate;
             }
 
-            if (changes.Any())
+            if (Status != status)
             {
-                SetUpdated();
-                AddHistoryEntry("Detalhes atualizados", string.Join(", ", changes), userId);
+                changes.Add($"Status alterado de '{Status}' para '{status}'");
+                Status = status;
             }
+
+            if (changes.Count > 0)
+                SetUpdated();
+
+            return changes;
         }
 
         public void AddComment(string content, Guid userId)
@@ -76,12 +75,12 @@ namespace TaskManager.Domain.Entities
             var comment = new TaskComment(content, Id, userId);
             Comments.Add(comment);
 
-            AddHistoryEntry("Comentário adicionado", $"Comentário: {content}", userId);
+            //AddHistoryEntry("Comentário adicionado", $"Comentário: {content}", userId);
         }
 
         private void AddHistoryEntry(string action, string details, Guid? userId)
         {
-            History.Add(new TaskHistoryEntry(action, details, Id, userId));
+            History.Add(new TaskHistoryEntry(action, Id, details, userId));
         }
     }
 }

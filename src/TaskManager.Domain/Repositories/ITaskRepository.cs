@@ -8,7 +8,7 @@ namespace TaskManager.Domain.Repositories
         Task<TaskItem> GetByIdAsync(Guid id);
         Task<TaskItem> AddAsync(TaskItem task);
         Task UpdateAsync(TaskItem task);
-        Task<bool> DeleteAsync(Guid id);
+        Task<bool> DeleteAsync(TaskItem task);
         Task<bool> ExistsAsync(Guid id);
         Task<int> GetCompletedTasksCountByUserIdLastDaysAsync(Guid userId, int days);
     }

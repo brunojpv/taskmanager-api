@@ -10,11 +10,11 @@
         public Guid? UserId { get; private set; }
         public User User { get; private set; }
 
-        public TaskHistoryEntry(string action, string details, Guid taskId, Guid? userId)
+        public TaskHistoryEntry(string action, Guid taskId, string? details = null, Guid? userId = null)
         {
             Action = action;
-            Details = details;
-            Timestamp = DateTime.UtcNow;
+            Details = details ?? $"Ação: {action}";
+            Timestamp = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Utc);
             TaskId = taskId;
             UserId = userId;
         }

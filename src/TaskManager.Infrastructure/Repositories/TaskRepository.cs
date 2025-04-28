@@ -44,17 +44,18 @@ namespace TaskManager.Infrastructure.Repositories
             await _dbContext.SaveChangesAsync();
         }
 
-        public async Task<bool> DeleteAsync(Guid id)
+        public async Task<bool> DeleteAsync(TaskItem task)
         {
-            var task = await _dbContext.Tasks.FindAsync(id);
-            if (task == null)
+            try
+            {
+                _dbContext.Tasks.Remove(task);
+                await _dbContext.SaveChangesAsync();
+                return true;
+            }
+            catch (DbUpdateConcurrencyException)
             {
                 return false;
             }
-
-            _dbContext.Tasks.Remove(task);
-            await _dbContext.SaveChangesAsync();
-            return true;
         }
 
         public async Task<bool> ExistsAsync(Guid id)

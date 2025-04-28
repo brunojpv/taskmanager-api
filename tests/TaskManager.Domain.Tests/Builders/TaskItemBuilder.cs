@@ -66,7 +66,7 @@ namespace TaskManager.Domain.Tests.Builders
 
         public TaskItemBuilder WithHistoryEntry(string action, string details, Guid? userId = null)
         {
-            _historyEntries.Add(new TaskHistoryEntry(action, details, _customId ?? Guid.NewGuid(), userId));
+            _historyEntries.Add(new TaskHistoryEntry(action, _customId ?? Guid.NewGuid(), details, userId));
             return this;
         }
 

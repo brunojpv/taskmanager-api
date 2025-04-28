@@ -81,7 +81,7 @@ namespace TaskManager.Domain.Tests.Entities
             var newDueDate = DateTime.Now.AddDays(2);
 
             // Act
-            task.UpdateDetails(newTitle, newDescription, newDueDate, userId);
+            task.UpdateDetails(newTitle, newDescription, newDueDate, TaskItemStatus.Completed, userId);
 
             // Assert
             Assert.Equal(newTitle, task.Title);
@@ -104,7 +104,7 @@ namespace TaskManager.Domain.Tests.Entities
             var initialHistoryCount = task.History.Count;
 
             // Act
-            task.UpdateDetails(task.Title, task.Description, task.DueDate, userId);
+            task.UpdateDetails(task.Title, task.Description, task.DueDate, TaskItemStatus.Completed, userId);
 
             // Assert
             Assert.Equal(initialHistoryCount, task.History.Count);

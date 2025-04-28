@@ -1,6 +1,7 @@
 ﻿using FluentValidation;
 using FluentValidation.AspNetCore;
 using TaskManager.Api.Endpoints;
+using TaskManager.Application.Mappings;
 using TaskManager.Domain.Exceptions;
 using TaskManager.Infrastructure.Extensions;
 
@@ -30,6 +31,9 @@ builder.Services.AddTaskManagerServices(builder.Configuration);
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddFluentValidationClientsideAdapters();
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
+
+// Na configuração de serviços
+builder.Services.AddAutoMapper(typeof(MappingProfile));
 
 var app = builder.Build();
 

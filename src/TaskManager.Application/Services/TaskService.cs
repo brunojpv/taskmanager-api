@@ -1,4 +1,6 @@
-﻿using TaskManager.Application.DTOs;
+﻿using AutoMapper;
+using System.Data;
+using TaskManager.Application.DTOs;
 using TaskManager.Domain.Entities;
 using TaskManager.Domain.Exceptions;
 using TaskManager.Domain.Repositories;
@@ -12,19 +14,22 @@ namespace TaskManager.Application.Services
         private readonly ITaskHistoryRepository _historyRepository;
         private readonly ITaskCommentRepository _commentRepository;
         private readonly IUserRepository _userRepository;
+        private readonly IMapper _mapper;
 
         public TaskService(
             ITaskRepository taskRepository,
             IProjectRepository projectRepository,
             ITaskHistoryRepository historyRepository,
             ITaskCommentRepository commentRepository,
-            IUserRepository userRepository)
+            IUserRepository userRepository,
+            IMapper mapper)
         {
             _taskRepository = taskRepository;
             _projectRepository = projectRepository;
             _historyRepository = historyRepository;
             _commentRepository = commentRepository;
             _userRepository = userRepository;
+            _mapper = mapper;
         }
 
         public async Task<List<TaskDTO>> GetAllByProjectIdAsync(Guid projectId)
@@ -161,41 +166,23 @@ namespace TaskManager.Application.Services
                 throw new DomainException("Tarefa não encontrada.");
             }
 
-            task.UpdateDetails(taskDto.Title, taskDto.Description, taskDto.DueDate, taskDto.UserId);
-            task.UpdateStatus(taskDto.Status, taskDto.UserId);
+            var changes = task.UpdateDetails(taskDto.Title, taskDto.Description, taskDto.DueDate, taskDto.Status, taskDto.UserId);
 
             await _taskRepository.UpdateAsync(task);
 
-            var comments = await _commentRepository.GetAllByTaskIdAsync(task.Id);
-            var commentDtos = new List<TaskCommentDTO>();
-
-            foreach (var comment in comments)
+            if (changes.Count > 0)
             {
-                var user = await _userRepository.GetByIdAsync(comment.UserId);
+                var taskHistoryEntry = new TaskHistoryEntry(
+                    "Tarefa atualizada",
+                    task.Id,
+                    string.Join(", ", changes),
+                    taskDto.UserId
+                );
 
-                commentDtos.Add(new TaskCommentDTO
-                {
-                    Id = comment.Id,
-                    Content = comment.Content,
-                    CreatedAt = comment.CreatedAt,
-                    UserId = comment.UserId,
-                    UserName = user?.Name ?? "Usuário Desconhecido"
-                });
+                await _historyRepository.AddAsync(taskHistoryEntry);
             }
 
-            return new TaskDTO
-            {
-                Id = task.Id,
-                Title = task.Title,
-                Description = task.Description,
-                CreatedAt = task.CreatedAt,
-                UpdatedAt = task.UpdatedAt,
-                DueDate = task.DueDate,
-                Status = task.Status,
-                Priority = task.Priority,
-                ProjectId = task.ProjectId,
-                Comments = commentDtos
-            };
+            return _mapper.Map<TaskDTO>(task);
         }
 
         public async Task<bool> DeleteAsync(Guid id)
@@ -212,10 +199,7 @@ namespace TaskManager.Application.Services
                 throw new DomainException("Projeto não encontrado.");
             }
 
-            project.RemoveTask(task.Id);
-            await _projectRepository.UpdateAsync(project);
-
-            return await _taskRepository.DeleteAsync(id);
+            return await _taskRepository.DeleteAsync(task);
         }
 
         public async Task<TaskDTO> AddCommentAsync(TaskCommentCreateDTO commentDto)

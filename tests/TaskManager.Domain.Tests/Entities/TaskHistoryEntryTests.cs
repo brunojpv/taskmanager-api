@@ -14,7 +14,7 @@ namespace TaskManager.Domain.Tests.Entities
             var userId = Guid.NewGuid();
 
             // Act
-            var historyEntry = new TaskHistoryEntry(action, details, taskId, userId);
+            var historyEntry = new TaskHistoryEntry(action, taskId, details, userId);
 
             // Assert
             Assert.Equal(action, historyEntry.Action);
@@ -37,7 +37,7 @@ namespace TaskManager.Domain.Tests.Entities
             Guid? userId = null;
 
             // Act
-            var historyEntry = new TaskHistoryEntry(action, details, taskId, userId);
+            var historyEntry = new TaskHistoryEntry(action, taskId, details, userId);
 
             // Assert
             Assert.Equal(action, historyEntry.Action);
@@ -54,7 +54,7 @@ namespace TaskManager.Domain.Tests.Entities
             var beforeCreation = DateTime.UtcNow.AddSeconds(-1);
 
             // Act
-            var historyEntry = new TaskHistoryEntry("Test action", null, Guid.NewGuid(), null);
+            var historyEntry = new TaskHistoryEntry("Test action", Guid.NewGuid(), null, null);
 
             var afterCreation = DateTime.UtcNow.AddSeconds(1);
 
