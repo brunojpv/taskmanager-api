@@ -172,14 +172,13 @@ namespace TaskManager.Application.Services
 
             if (changes.Count > 0)
             {
-                var taskHistoryEntry = new TaskHistoryEntry(
-                    "Tarefa atualizada",
-                    task.Id,
-                    string.Join(", ", changes),
-                    taskDto.UserId
-                );
-
-                await _historyRepository.AddAsync(taskHistoryEntry);
+                await AddHistoryAsync(new TaskHistoryDTO
+                {
+                    Action = "Tarefa atualizada",
+                    TaskId = task.Id,
+                    Details = string.Join(", ", changes),
+                    UserId = taskDto.UserId
+                });
             }
 
             return _mapper.Map<TaskDTO>(task);
@@ -210,10 +209,24 @@ namespace TaskManager.Application.Services
                 throw new DomainException("Tarefa não encontrada.");
             }
 
-            task.AddComment(commentDto.Content, commentDto.UserId);
-            await _taskRepository.UpdateAsync(task);
+            var taskComment = _mapper.Map<TaskComment>(commentDto);
+            await _commentRepository.AddAsync(taskComment);
+
+            await AddHistoryAsync(new TaskHistoryDTO
+            {
+                Action = "Comentário adicionado",
+                TaskId = task.Id,
+                Details = $"Comentário: {commentDto.Content}",
+                UserId = commentDto.UserId
+            });
 
             return await GetByIdAsync(task.Id);
+        }
+
+        public async Task AddHistoryAsync(TaskHistoryDTO taskHistoryDTO)
+        {
+            var taskHistoryEntry = _mapper.Map<TaskHistoryEntry>(taskHistoryDTO);
+            await _historyRepository.AddAsync(taskHistoryEntry);
         }
 
         public async Task<List<TaskHistoryDTO>> GetHistoryAsync(Guid taskId)
@@ -242,13 +255,13 @@ namespace TaskManager.Application.Services
                     Id = entry.Id,
                     Action = entry.Action,
                     Details = entry.Details,
-                    Timestamp = entry.Timestamp,
+                    TaskId = entry.TaskId,
                     UserId = entry.UserId,
                     UserName = userName
                 });
             }
 
-            return historyDtos.OrderByDescending(h => h.Timestamp).ToList();
+            return historyDtos.OrderByDescending(h => h.TaskId).ToList();
         }
     }
 }

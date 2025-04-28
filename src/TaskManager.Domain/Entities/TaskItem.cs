@@ -31,7 +31,6 @@ namespace TaskManager.Domain.Entities
             if (Status == newStatus)
                 return;
 
-            var oldStatus = Status;
             Status = newStatus;
             SetUpdated();
         }
@@ -74,13 +73,6 @@ namespace TaskManager.Domain.Entities
         {
             var comment = new TaskComment(content, Id, userId);
             Comments.Add(comment);
-
-            //AddHistoryEntry("Comentário adicionado", $"Comentário: {content}", userId);
-        }
-
-        private void AddHistoryEntry(string action, string details, Guid? userId)
-        {
-            History.Add(new TaskHistoryEntry(action, Id, details, userId));
         }
     }
 }

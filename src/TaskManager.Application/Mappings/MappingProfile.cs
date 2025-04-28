@@ -14,8 +14,12 @@ namespace TaskManager.Application.Mappings
             CreateMap<TaskComment, TaskCommentDTO>()
                 .ForMember(dest => dest.UserName, opt => opt.Ignore());
 
+            CreateMap<TaskCommentCreateDTO, TaskComment>();
+
             CreateMap<TaskHistoryEntry, TaskHistoryDTO>()
                 .ForMember(dest => dest.UserName, opt => opt.Ignore());
+
+            CreateMap<TaskHistoryDTO, TaskHistoryEntry>();
         }
     }
 }

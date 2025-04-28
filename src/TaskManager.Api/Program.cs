@@ -44,8 +44,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI(c =>
     {
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "TaskManager API v1");
-        c.RoutePrefix = string.Empty; // Para servir a UI do Swagger na raiz
-        c.DefaultModelsExpandDepth(-1); // Oculta o esquema de modelo por padrão
+        c.DefaultModelsExpandDepth(-1);
     });
 }
 
