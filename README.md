@@ -159,10 +159,6 @@ Com base na experiência de desenvolvimento deste projeto, identifico as seguint
    - Adicionar previsão de conclusão baseada em histórico
    - Criar relatórios personalizáveis
 
-## 📄 Licença
-
-Este projeto está licenciado sob a [MIT License](LICENSE).
-
 ## 👤 Autor
 
 Bruno Vieira - [LinkedIn](https://www.linkedin.com/in/brunojpv/) - [Email](mailto:brunojpv@gmail.com)
