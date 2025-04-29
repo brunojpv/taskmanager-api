@@ -45,14 +45,14 @@ Para executar o projeto usando Docker:
 
 ```bash
 # Clone o repositório
-git clone https://github.com/seu-usuario/taskmanager.git
+git clone https://github.com/brunojpv/taskmanager.git
 cd taskmanager
 
 # Inicie os containers
 docker-compose up -d
 ```
 
-A API estará disponível em `http://localhost:5000`, e a documentação Swagger em `http://localhost:5000`.
+A API estará disponível em `http://localhost:5093`, e a documentação Swagger em `http://localhost:5093`.
 
 ## 🧪 Testes
 
@@ -165,4 +165,4 @@ Este projeto está licenciado sob a [MIT License](LICENSE).
 
 ## 👤 Autor
 
-Bruno Vieira - [GitHub](https://github.com/seu-usuario) - [Email](mailto:seu-email@exemplo.com)
+Bruno Vieira - [LinkedIn](https://www.linkedin.com/in/brunojpv/) - [Email](mailto:brunojpv@gmail.com)
