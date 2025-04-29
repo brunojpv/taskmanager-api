@@ -1,720 +1,828 @@
 {
-  "info": {
-    "name": "TaskManager API Tests",
-    "description": "Testes automatizados para a API do TaskManager",
-    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
-  },
-  "item": [
-    {
-      "name": "Autenticação",
-      "item": [
-        {
-          "name": "Obter usuário de teste",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test(\"Status code é 200\", function () {",
-                  "    pm.response.to.have.status(200);",
-                  "});",
-                  "",
-                  "pm.test(\"Usuário encontrado\", function () {",
-                  "    var jsonData = pm.response.json();",
-                  "    pm.expect(jsonData.name).to.eql(\"Test Manager\");",
-                  "    pm.expect(jsonData.email).to.eql(\"manager@example.com\");",
-                  "    pm.expect(jsonData.isManager).to.eql(true);",
-                  "    ",
-                  "    // Salvar o ID do usuário para testes subsequentes",
-                  "    pm.environment.set(\"userId\", jsonData.id);",
-                  "});",
-                  ""
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/users/email/manager@example.com",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "users", "email", "manager@example.com"]
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "Projetos",
-      "item": [
-        {
-          "name": "Listar Projetos",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test(\"Status code é 200\", function () {",
-                  "    pm.response.to.have.status(200);",
-                  "});",
-                  "",
-                  "pm.test(\"Lista de projetos retornada\", function () {",
-                  "    var jsonData = pm.response.json();",
-                  "    pm.expect(jsonData).to.be.an('array');",
-                  "    ",
-                  "    if (jsonData.length > 0) {",
-                  "        pm.environment.set(\"projectId\", jsonData[0].id);",
-                  "    }",
-                  "});",
-                  ""
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "User-Id",
-                "value": "{{userId}}",
-                "type": "text"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/projects/{{userId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "projects", "{{userId}}"]
-            }
-          }
-        },
-        {
-          "name": "Criar Projeto",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test(\"Status code é 201\", function () {",
-                  "    pm.response.to.have.status(201);",
-                  "});",
-                  "",
-                  "pm.test(\"Projeto criado com sucesso\", function () {",
-                  "    var jsonData = pm.response.json();",
-                  "    pm.expect(jsonData.name).to.eql(\"Projeto de Teste\");",
-                  "    pm.expect(jsonData.description).to.eql(\"Descrição do projeto de teste\");",
-                  "    pm.expect(jsonData.taskCount).to.eql(0);",
-                  "    ",
-                  "    // Salvar o ID do projeto para testes subsequentes",
-                  "    pm.environment.set(\"projectId\", jsonData.id);",
-                  "});",
-                  ""
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json",
-                "type": "text"
-              },
-              {
-                "key": "User-Id",
-                "value": "{{userId}}",
-                "type": "text"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n    \"name\": \"Projeto de Teste\",\n    \"description\": \"Descrição do projeto de teste\",\n    \"userId\": \"{{userId}}\"\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/projects",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "projects"]
-            }
-          }
-        },
-        {
-          "name": "Obter Projeto por ID",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test(\"Status code é 200\", function () {",
-                  "    pm.response.to.have.status(200);",
-                  "});",
-                  "",
-                  "pm.test(\"Detalhes do projeto retornados\", function () {",
-                  "    var jsonData = pm.response.json();",
-                  "    pm.expect(jsonData.id).to.eql(pm.environment.get(\"projectId\"));",
-                  "    pm.expect(jsonData.name).to.eql(\"Projeto de Teste\");",
-                  "});",
-                  ""
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "User-Id",
-                "value": "{{userId}}",
-                "type": "text"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/projects/details/{{projectId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "projects", "details", "{{projectId}}"]
-            }
-          }
-        },
-        {
-          "name": "Atualizar Projeto",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test(\"Status code é 200\", function () {",
-                  "    pm.response.to.have.status(200);",
-                  "});",
-                  "",
-                  "pm.test(\"Projeto atualizado com sucesso\", function () {",
-                  "    var jsonData = pm.response.json();",
-                  "    pm.expect(jsonData.name).to.eql(\"Projeto Atualizado\");",
-                  "    pm.expect(jsonData.description).to.eql(\"Descrição do projeto atualizada\");",
-                  "});",
-                  ""
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json",
-                "type": "text"
-              },
-              {
-                "key": "User-Id",
-                "value": "{{userId}}",
-                "type": "text"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n    \"id\": \"{{projectId}}\",\n    \"name\": \"Projeto Atualizado\",\n    \"description\": \"Descrição do projeto atualizada\"\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/projects",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "projects"]
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "Tarefas",
-      "item": [
-        {
-          "name": "Listar Tarefas do Projeto",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test(\"Status code é 200\", function () {",
-                  "    pm.response.to.have.status(200);",
-                  "});",
-                  "",
-                  "pm.test(\"Lista de tarefas retornada\", function () {",
-                  "    var jsonData = pm.response.json();",
-                  "    pm.expect(jsonData).to.be.an('array');",
-                  "});",
-                  ""
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "User-Id",
-                "value": "{{userId}}",
-                "type": "text"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/tasks/project/{{projectId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "tasks", "project", "{{projectId}}"]
-            }
-          }
-        },
-        {
-          "name": "Criar Tarefa",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test(\"Status code é 201\", function () {",
-                  "    pm.response.to.have.status(201);",
-                  "});",
-                  "",
-                  "pm.test(\"Tarefa criada com sucesso\", function () {",
-                  "    var jsonData = pm.response.json();",
-                  "    pm.expect(jsonData.title).to.eql(\"Tarefa de Teste\");",
-                  "    pm.expect(jsonData.description).to.eql(\"Descrição da tarefa de teste\");",
-                  "    pm.expect(jsonData.status).to.eql(0); // Pendente",
-                  "    pm.expect(jsonData.priority).to.eql(1); // Média",
-                  "    pm.expect(jsonData.projectId).to.eql(pm.environment.get(\"projectId\"));",
-                  "    ",
-                  "    // Salvar o ID da tarefa para testes subsequentes",
-                  "    pm.environment.set(\"taskId\", jsonData.id);",
-                  "});",
-                  ""
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json",
-                "type": "text"
-              },
-              {
-                "key": "User-Id",
-                "value": "{{userId}}",
-                "type": "text"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n    \"title\": \"Tarefa de Teste\",\n    \"description\": \"Descrição da tarefa de teste\",\n    \"dueDate\": \"{{$isoTimestamp}}\",\n    \"priority\": 1,\n    \"projectId\": \"{{projectId}}\"\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/tasks",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "tasks"]
-            }
-          }
-        },
-        {
-          "name": "Obter Tarefa por ID",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test(\"Status code é 200\", function () {",
-                  "    pm.response.to.have.status(200);",
-                  "});",
-                  "",
-                  "pm.test(\"Detalhes da tarefa retornados\", function () {",
-                  "    var jsonData = pm.response.json();",
-                  "    pm.expect(jsonData.id).to.eql(pm.environment.get(\"taskId\"));",
-                  "    pm.expect(jsonData.title).to.eql(\"Tarefa de Teste\");",
-                  "});",
-                  ""
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "User-Id",
-                "value": "{{userId}}",
-                "type": "text"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/tasks/{{taskId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "tasks", "{{taskId}}"]
-            }
-          }
-        },
-        {
-          "name": "Atualizar Status da Tarefa",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test(\"Status code é 200\", function () {",
-                  "    pm.response.to.have.status(200);",
-                  "});",
-                  "",
-                  "pm.test(\"Status da tarefa atualizado com sucesso\", function () {",
-                  "    var jsonData = pm.response.json();",
-                  "    pm.expect(jsonData.status).to.eql(1); // Em Progresso",
-                  "});",
-                  ""
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "PATCH",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json",
-                "type": "text"
-              },
-              {
-                "key": "User-Id",
-                "value": "{{userId}}",
-                "type": "text"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n    \"taskId\": \"{{taskId}}\",\n    \"status\": 1\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/tasks/status",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "tasks", "status"]
-            }
-          }
-        },
-        {
-          "name": "Adicionar Comentário à Tarefa",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test(\"Status code é 200\", function () {",
-                  "    pm.response.to.have.status(200);",
-                  "});",
-                  "",
-                  "pm.test(\"Comentário adicionado com sucesso\", function () {",
-                  "    var jsonData = pm.response.json();",
-                  "    pm.expect(jsonData.comments).to.be.an('array');",
-                  "    pm.expect(jsonData.comments.length).to.be.greaterThan(0);",
-                  "    ",
-                  "    // Verifica se o comentário mais recente corresponde ao que foi adicionado",
-                  "    const lastComment = jsonData.comments[jsonData.comments.length - 1];",
-                  "    pm.expect(lastComment.content).to.eql(\"Este é um comentário de teste\");",
-                  "});",
-                  ""
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json",
-                "type": "text"
-              },
-              {
-                "key": "User-Id",
-                "value": "{{userId}}",
-                "type": "text"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n    \"taskId\": \"{{taskId}}\",\n    \"content\": \"Este é um comentário de teste\"\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/tasks/comment",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "tasks", "comment"]
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "Relatórios",
-      "item": [
-        {
-          "name": "Relatório de Desempenho da Equipe",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test(\"Status code é 200\", function () {",
-                  "    pm.response.to.have.status(200);",
-                  "});",
-                  "",
-                  "pm.test(\"Relatório de desempenho retornado\", function () {",
-                  "    var jsonData = pm.response.json();",
-                  "    pm.expect(jsonData).to.have.property('totalUsers');",
-                  "    pm.expect(jsonData).to.have.property('totalCompletedTasks');",
-                  "    pm.expect(jsonData).to.have.property('averageCompletedTasksPerUser');",
-                  "    pm.expect(jsonData).to.have.property('reportDate');",
-                  "    pm.expect(jsonData).to.have.property('daysInReport');",
-                  "    pm.expect(jsonData.daysInReport).to.eql(30);",
-                  "});",
-                  ""
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "User-Id",
-                "value": "{{userId}}",
-                "type": "text"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/reports/performance/team?days=30",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "reports", "performance", "team"],
-              "query": [
-                {
-                  "key": "days",
-                  "value": "30"
-                }
-              ]
-            }
-          }
-        },
-        {
-          "name": "Relatório de Tarefas do Usuário",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test(\"Status code é 200\", function () {",
-                  "    pm.response.to.have.status(200);",
-                  "});",
-                  "",
-                  "pm.test(\"Relatório de tarefas do usuário retornado\", function () {",
-                  "    var jsonData = pm.response.json();",
-                  "    pm.expect(jsonData).to.have.property('userId');",
-                  "    pm.expect(jsonData).to.have.property('userName');",
-                  "    pm.expect(jsonData).to.have.property('totalTasks');",
-                  "    pm.expect(jsonData).to.have.property('completedTasks');",
-                  "    pm.expect(jsonData).to.have.property('completionRate');",
-                  "    pm.expect(jsonData.userId).to.eql(pm.environment.get(\"userId\"));",
-                  "});",
-                  ""
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "User-Id",
-                "value": "{{userId}}",
-                "type": "text"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/reports/user/{{userId}}?days=30",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "reports", "user", "{{userId}}"],
-              "query": [
-                {
-                  "key": "days",
-                  "value": "30"
-                }
-              ]
-            }
-          }
-        },
-        {
-          "name": "Relatório de Tarefas de Todos os Usuários",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test(\"Status code é 200\", function () {",
-                  "    pm.response.to.have.status(200);",
-                  "});",
-                  "",
-                  "pm.test(\"Relatório de tarefas de todos os usuários retornado\", function () {",
-                  "    var jsonData = pm.response.json();",
-                  "    pm.expect(jsonData).to.be.an('array');",
-                  "    ",
-                  "    if (jsonData.length > 0) {",
-                  "        pm.expect(jsonData[0]).to.have.property('userId');",
-                  "        pm.expect(jsonData[0]).to.have.property('userName');",
-                  "        pm.expect(jsonData[0]).to.have.property('totalTasks');",
-                  "        pm.expect(jsonData[0]).to.have.property('completedTasks');",
-                  "        pm.expect(jsonData[0]).to.have.property('completionRate');",
-                  "    }",
-                  "});",
-                  ""
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "User-Id",
-                "value": "{{userId}}",
-                "type": "text"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/reports/users/all?days=30",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "reports", "users", "all"],
-              "query": [
-                {
-                  "key": "days",
-                  "value": "30"
-                }
-              ]
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "Limpeza",
-      "item": [
-        {
-          "name": "Excluir Tarefa",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test(\"Status code é 200\", function () {",
-                  "    pm.response.to.have.status(200);",
-                  "});",
-                  "",
-                  "pm.test(\"Tarefa excluída com sucesso\", function () {",
-                  "    var jsonData = pm.response.json();",
-                  "    pm.expect(jsonData).to.eql(true);",
-                  "});",
-                  ""
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "DELETE",
-            "header": [
-              {
-                "key": "User-Id",
-                "value": "{{userId}}",
-                "type": "text"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/tasks/{{taskId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "tasks", "{{taskId}}"]
-            }
-          }
-        },
-        {
-          "name": "Excluir Projeto",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test(\"Status code é 200\", function () {",
-                  "    pm.response.to.have.status(200);",
-                  "});",
-                  "",
-                  "pm.test(\"Projeto excluído com sucesso\", function () {",
-                  "    var jsonData = pm.response.json();",
-                  "    pm.expect(jsonData).to.eql(true);",
-                  "});",
-                  ""
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "DELETE",
-            "header": [
-              {
-                "key": "User-Id",
-                "value": "{{userId}}",
-                "type": "text"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/projects/{{projectId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "projects", "{{projectId}}"]
-            }
-          }
-        }
-      ]
-    }
-  ],
-  "event": [
-    {
-      "listen": "prerequest",
-      "script": {
-        "type": "text/javascript",
-        "exec": [
-          ""
-        ]
-      }
-    },
-    {
-      "listen": "test",
-      "script": {
-        "type": "text/javascript",
-        "exec": [
-          ""
-        ]
-      }
-    }
-  ],
-  "variable": [
-    {
-      "key": "baseUrl",
-      "value": "http://localhost:5000",
-      "type": "string"
-    }
-  ]
+	"info": {
+		"_postman_id": "64e84d43-2fae-4ac5-b1cd-980dda64d821",
+		"name": "TaskManager API Tests",
+		"description": "Testes automatizados para a API do TaskManager",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "10403376"
+	},
+	"item": [
+		{
+			"name": "Projetos",
+			"item": [
+				{
+					"name": "Listar Projetos",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code é 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Lista de projetos retornada\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.be.an('array');",
+									"    ",
+									"    if (jsonData.length > 0) {",
+									"        pm.environment.set(\"projectId\", jsonData[0].id);",
+									"    }",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "User-Id",
+								"value": "{{userId}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/projects/{{userId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"projects",
+								"{{userId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Obter Projeto por ID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code é 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Detalhes do projeto retornados\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.id).to.eql(pm.environment.get(\"projectId\"));",
+									"    pm.expect(jsonData.name).to.eql(\"Projeto de Teste\");",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "User-Id",
+								"value": "{{userId}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/projects/{{projectId}}/details",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"projects",
+								"{{projectId}}",
+								"details"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Criar Projeto",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code é 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test(\"Projeto criado com sucesso\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.name).to.eql(\"Projeto de Teste\");",
+									"    pm.expect(jsonData.description).to.eql(\"Descrição do projeto de teste\");",
+									"    pm.expect(jsonData.taskCount).to.eql(0);",
+									"    ",
+									"    // Salvar o ID do projeto para testes subsequentes",
+									"    pm.environment.set(\"projectId\", jsonData.id);",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "User-Id",
+								"value": "{{userId}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Projeto de Teste\",\n    \"description\": \"Descrição do projeto de teste\",\n    \"userId\": \"{{userId}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/projects",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"projects"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Atualizar Projeto",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code é 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Projeto atualizado com sucesso\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.name).to.eql(\"Projeto Atualizado\");",
+									"    pm.expect(jsonData.description).to.eql(\"Descrição do projeto atualizada\");",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "User-Id",
+								"value": "{{userId}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"id\": \"{{projectId}}\",\n    \"name\": \"Projeto Demo 3\",\n    \"description\": \"Projeto atualizada\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/projects",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"projects"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Excluir Projeto",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code é 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Projeto excluído com sucesso\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.eql(true);",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "User-Id",
+								"value": "{{userId}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/projects/{{projectId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"projects",
+								"{{projectId}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Tarefas",
+			"item": [
+				{
+					"name": "Listar Tarefas do Projeto",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code é 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Lista de tarefas retornada\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.be.an('array');",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "User-Id",
+								"value": "{{userId}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/tasks/project/{{projectId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"tasks",
+								"project",
+								"{{projectId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Obter a Tarefa por ID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code é 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Detalhes da tarefa retornados\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.id).to.eql(pm.environment.get(\"taskId\"));\r",
+									"    pm.expect(jsonData.title).to.eql(\"Tarefa de Teste\");\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "User-Id",
+								"value": "{{userId}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/tasks/{{taskId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"tasks",
+								"{{taskId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Obter o Histórico da Tarefa por ID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code é 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Detalhes do histórico da tarefa retornados\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.id).to.eql(pm.environment.get(\"taskId\"));",
+									"    pm.expect(jsonData.title).to.eql(\"Tarefa de Teste\");",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "User-Id",
+								"value": "{{userId}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/tasks/{{taskId}}/history",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"tasks",
+								"{{taskId}}",
+								"history"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Criar Tarefa",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code é 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test(\"Tarefa criada com sucesso\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.title).to.eql(\"Tarefa de Teste\");",
+									"    pm.expect(jsonData.description).to.eql(\"Descrição da tarefa de teste\");",
+									"    pm.expect(jsonData.status).to.eql(0); // Pendente",
+									"    pm.expect(jsonData.priority).to.eql(1); // Média",
+									"    pm.expect(jsonData.projectId).to.eql(pm.environment.get(\"projectId\"));",
+									"    ",
+									"    // Salvar o ID da tarefa para testes subsequentes",
+									"    pm.environment.set(\"taskId\", jsonData.id);",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "User-Id",
+								"value": "{{userId}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"Tarefa Demo 3\",\n    \"description\": \"Testando a criação da tarefa\",\n    \"dueDate\": \"{{$isoTimestamp}}\",\n    \"priority\": 1,\n    \"projectId\": \"{{projectId}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/tasks",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"tasks"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Atualizar Tarefa",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code é 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Tarefa atualizada com sucesso\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.status).to.eql(1); // Em Progresso",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "User-Id",
+								"value": "{{userId}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"id\": \"{{taskId}}\",\n    \"title\": \"Teste 3\",\n    \"description\": \"Testando a alteração da tarefa\",\n    \"dueDate\": \"{{$isoTimestamp}}\",\n    \"status\": 0,\n    \"userId\": \"{{userId}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/tasks",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"tasks"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Excluir Tarefa",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code é 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Tarefa excluída com sucesso\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.eql(true);",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "User-Id",
+								"value": "{{userId}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/tasks/{{taskId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"tasks",
+								"{{taskId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Adicionar Comentário à Tarefa",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code é 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Comentário adicionado com sucesso\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.comments).to.be.an('array');",
+									"    pm.expect(jsonData.comments.length).to.be.greaterThan(0);",
+									"    ",
+									"    // Verifica se o comentário mais recente corresponde ao que foi adicionado",
+									"    const lastComment = jsonData.comments[jsonData.comments.length - 1];",
+									"    pm.expect(lastComment.content).to.eql(\"Este é um comentário de teste\");",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "User-Id",
+								"value": "{{userId}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"content\": \"Este é um comentário de teste\",\n    \"taskId\": \"{{taskId}}\",    \n    \"userId\": \"{{userId}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/tasks/comment",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"tasks",
+								"comment"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Relatórios",
+			"item": [
+				{
+					"name": "Relatório de Desempenho da Equipe",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code é 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Relatório de desempenho retornado\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('totalUsers');",
+									"    pm.expect(jsonData).to.have.property('totalCompletedTasks');",
+									"    pm.expect(jsonData).to.have.property('averageCompletedTasksPerUser');",
+									"    pm.expect(jsonData).to.have.property('reportDate');",
+									"    pm.expect(jsonData).to.have.property('daysInReport');",
+									"    pm.expect(jsonData.daysInReport).to.eql(30);",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "User-Id",
+								"value": "{{userId}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/reports/performance/team?days=30",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"reports",
+								"performance",
+								"team"
+							],
+							"query": [
+								{
+									"key": "days",
+									"value": "30"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Relatório de Tarefas do Usuário",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code é 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Relatório de tarefas do usuário retornado\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('userId');",
+									"    pm.expect(jsonData).to.have.property('userName');",
+									"    pm.expect(jsonData).to.have.property('totalTasks');",
+									"    pm.expect(jsonData).to.have.property('completedTasks');",
+									"    pm.expect(jsonData).to.have.property('completionRate');",
+									"    pm.expect(jsonData.userId).to.eql(pm.environment.get(\"userId\"));",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "User-Id",
+								"value": "{{userId}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/reports/user/{{userId}}?days=30",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"reports",
+								"user",
+								"{{userId}}"
+							],
+							"query": [
+								{
+									"key": "days",
+									"value": "30"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Relatório de Tarefas de Todos os Usuários",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code é 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Relatório de tarefas de todos os usuários retornado\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.be.an('array');",
+									"    ",
+									"    if (jsonData.length > 0) {",
+									"        pm.expect(jsonData[0]).to.have.property('userId');",
+									"        pm.expect(jsonData[0]).to.have.property('userName');",
+									"        pm.expect(jsonData[0]).to.have.property('totalTasks');",
+									"        pm.expect(jsonData[0]).to.have.property('completedTasks');",
+									"        pm.expect(jsonData[0]).to.have.property('completionRate');",
+									"    }",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "User-Id",
+								"value": "{{userId}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/reports/users/all?days=30",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"reports",
+								"users",
+								"all"
+							],
+							"query": [
+								{
+									"key": "days",
+									"value": "30"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:5000",
+			"type": "string"
+		}
+	]
 }
