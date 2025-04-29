@@ -28,7 +28,6 @@ namespace TaskManager.Api.Tests.Integration
             // Arrange
             var userId = Guid.NewGuid();
 
-            // Add test projects to the in-memory database
             await _factory.AddTestProject(userId, "Test Project 1", "Description 1");
             await _factory.AddTestProject(userId, "Test Project 2", "Description 2");
 

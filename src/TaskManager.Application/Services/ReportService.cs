@@ -17,7 +17,6 @@ namespace TaskManager.Application.Services
 
         public async Task<UserTaskReportDto> GetUserTaskReportAsync(Guid userId, int days = 30)
         {
-            // Verifica se o usuário existe
             var userExists = await _userRepository.GetByIdAsync(userId) != null;
             if (!userExists)
             {

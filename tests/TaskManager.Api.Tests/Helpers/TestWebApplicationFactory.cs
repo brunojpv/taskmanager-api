@@ -18,10 +18,8 @@ namespace TaskManager.Api.Tests.Helpers
         {
             builder.ConfigureServices(services =>
             {
-                // Store the service collection for later modifications
                 Services = services;
 
-                // Remove the app's DbContext registration
                 var descriptor = services.SingleOrDefault(
                     d => d.ServiceType == typeof(DbContextOptions<TaskManagerDbContext>));
 
@@ -30,28 +28,23 @@ namespace TaskManager.Api.Tests.Helpers
                     services.Remove(descriptor);
                 }
 
-                // Add DbContext using an in-memory database for testing
                 services.AddDbContext<TaskManagerDbContext>(options =>
                 {
                     options.UseInMemoryDatabase("InMemoryDbForTesting");
                 });
 
-                // Build the service provider
                 var sp = services.BuildServiceProvider();
 
-                // Create a scope to obtain a reference to the database context
                 using (var scope = sp.CreateScope())
                 {
                     var scopedServices = scope.ServiceProvider;
                     var db = scopedServices.GetRequiredService<TaskManagerDbContext>();
                     var logger = scopedServices.GetRequiredService<ILogger<TestWebApplicationFactory>>();
 
-                    // Ensure the database is created
                     db.Database.EnsureCreated();
 
                     try
                     {
-                        // Initialize the database with test data if needed
                         InitializeTestDatabase(db);
                     }
                     catch (Exception ex)
@@ -97,7 +90,6 @@ namespace TaskManager.Api.Tests.Helpers
             using var scope = Services.BuildServiceProvider().CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<TaskManagerDbContext>();
 
-            // Get the project
             var project = await db.Projects.FindAsync(projectId);
             if (project == null)
                 throw new InvalidOperationException($"Project with ID {projectId} not found");

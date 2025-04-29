@@ -86,7 +86,6 @@ namespace TaskManager.Application.Tests.Services
             // Arrange
             var projectId = Guid.NewGuid();
 
-            // Criar um projeto com ID personalizado
             var project = new ProjectBuilder()
                 .WithName("Test Project")
                 .WithDescription("Test Description")
@@ -94,7 +93,6 @@ namespace TaskManager.Application.Tests.Services
                 .WithId(projectId)
                 .Build();
 
-            // Adicionar uma tarefa pendente ao projeto
             var task = new TaskItemBuilder()
                 .WithTitle("Test Task")
                 .WithDescription("Test Description")
@@ -124,7 +122,6 @@ namespace TaskManager.Application.Tests.Services
             // Arrange
             var projectId = Guid.NewGuid();
 
-            // Criar um projeto com ID personalizado
             var project = new ProjectBuilder()
                 .WithName("Test Project")
                 .WithDescription("Test Description")
@@ -173,12 +170,9 @@ namespace TaskManager.Application.Tests.Services
             // Assert
             Assert.Equal(projectDto.Name, result.Name);
             Assert.Equal(projectDto.Description, result.Description);
-
-            // Verify project object was updated
             Assert.Equal(projectDto.Name, originalProject.Name);
             Assert.Equal(projectDto.Description, originalProject.Description);
 
-            // Verify the repository method was called
             _mockProjectRepository.Verify(r => r.UpdateAsync(originalProject), Times.Once);
         }
     }

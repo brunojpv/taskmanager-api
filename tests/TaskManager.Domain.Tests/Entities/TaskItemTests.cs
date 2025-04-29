@@ -133,7 +133,6 @@ namespace TaskManager.Domain.Tests.Entities
             Assert.Contains(commentContent, historyEntry.Details);
         }
 
-        // Helper methods
         private TaskItem CreateTask()
         {
             return new TaskItem(

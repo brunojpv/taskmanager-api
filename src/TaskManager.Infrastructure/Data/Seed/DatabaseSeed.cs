@@ -6,7 +6,6 @@ namespace TaskManager.Infrastructure.Data.Seed
 {
     public static class DatabaseSeed
     {
-        // Data fixa de referência para evitar valores dinâmicos
         private static readonly DateTime BaseDate = new DateTime(2023, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
         public static void SeedData(ModelBuilder modelBuilder)

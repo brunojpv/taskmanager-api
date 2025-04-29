@@ -7,7 +7,6 @@ using TaskManager.Infrastructure.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
@@ -24,20 +23,16 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
-// Adiciona serviços do TaskManager
 builder.Services.AddTaskManagerServices(builder.Configuration);
 
-// Add FluentValidation
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddFluentValidationClientsideAdapters();
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 
-// Na configuração de serviços
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -48,7 +43,6 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-// Middleware para tratamento global de exceções
 app.Use(async (context, next) =>
 {
     try
@@ -67,12 +61,10 @@ app.Use(async (context, next) =>
     }
 });
 
-// Map endpoints
 app.MapProjectEndpoints();
 app.MapTaskEndpoints();
 app.MapReportEndpoints();
 
-// Ensure database is created and migrations are applied
 await app.Services.InitializeDatabaseAsync();
 
 await app.RunAsync();

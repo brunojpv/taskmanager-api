@@ -26,8 +26,7 @@ namespace TaskManager.Api.Tests.Helpers
                 services.Remove(descriptorToRemove);
             }
 
-            // Determine the correct service lifetime to use
-            var lifetime = ServiceLifetime.Scoped; // Default lifetime
+            var lifetime = ServiceLifetime.Scoped;
             if (descriptorToRemove != null)
             {
                 lifetime = descriptorToRemove.Lifetime;
@@ -49,7 +48,6 @@ namespace TaskManager.Api.Tests.Helpers
                 lifetime = ServiceLifetime.Scoped;
             }
 
-            // Add the service with the appropriate lifetime
             switch (lifetime)
             {
                 case ServiceLifetime.Singleton:

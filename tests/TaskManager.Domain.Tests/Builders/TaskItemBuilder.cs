@@ -78,25 +78,20 @@ namespace TaskManager.Domain.Tests.Builders
 
         public TaskItem Build()
         {
-            // Criar a tarefa normalmente
             var task = new TaskItem(_title, _description, _dueDate, _priority, _projectId);
 
-            // Se um ID personalizado foi fornecido, precisamos usar reflection para defini-lo
             if (_customId.HasValue)
             {
-                // Como a propriedade Id tem um setter protected, precisamos acessá-la via reflection
                 typeof(BaseEntity)
                     .GetProperty("Id", BindingFlags.Public | BindingFlags.Instance)
                     ?.SetValue(task, _customId.Value, null);
             }
 
-            // Aplicar status se diferente do padrão
             if (_status != TaskItemStatus.Pending)
             {
                 task.UpdateStatus(_status, Guid.NewGuid());
             }
 
-            // Adicionar comentários
             foreach (var comment in _comments)
             {
                 task.AddComment(comment.Content, comment.UserId);

@@ -47,7 +47,6 @@ namespace TaskManager.Domain.Tests.Entities
             // Arrange
             var project = CreateProject();
 
-            // Add 20 tasks
             for (int i = 0; i < 20; i++)
             {
                 project.AddTask(CreateTask(project.Id));
@@ -109,7 +108,6 @@ namespace TaskManager.Domain.Tests.Entities
             var project = CreateProject();
             var userId = Guid.NewGuid();
 
-            // Add a completed task
             var task = CreateTask(project.Id);
             task.UpdateStatus(TaskItemStatus.Completed, userId);
             project.AddTask(task);
@@ -138,7 +136,6 @@ namespace TaskManager.Domain.Tests.Entities
             Assert.NotNull(project.UpdatedAt);
         }
 
-        // Helper methods
         private Project CreateProject()
         {
             return new Project("Test Project", "Test Description", Guid.NewGuid());
