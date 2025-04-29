@@ -45,7 +45,7 @@ Para executar o projeto usando Docker:
 
 ```bash
 # Clone o repositório
-git clone https://github.com/brunojpv/taskmanager.git
+git clone https://github.com/brunojpv/taskmanager-api.git
 cd taskmanager
 
 # Inicie os containers
