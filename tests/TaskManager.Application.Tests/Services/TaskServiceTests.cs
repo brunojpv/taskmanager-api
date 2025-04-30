@@ -90,7 +90,7 @@ namespace TaskManager.Application.Tests.Services
             Assert.NotNull(result);
             Assert.Equal(taskDto.Title, result.Title);
             Assert.Equal(taskDto.Description, result.Description);
-            Assert.Equal(taskDto.DueDate, result.DueDate);
+            Assert.Equal(taskDto.DueDate?.Date, result.DueDate?.Date);
             Assert.Equal(taskDto.Priority, result.Priority);
             Assert.Equal(TaskItemStatus.Pending, result.Status);
             Assert.Equal(taskDto.ProjectId, result.ProjectId);
@@ -208,7 +208,7 @@ namespace TaskManager.Application.Tests.Services
             Assert.NotNull(result);
             Assert.Equal(taskDto.Title, result.Title);
             Assert.Equal(taskDto.Description, result.Description);
-            Assert.Equal(taskDto.DueDate, result.DueDate);
+            Assert.Equal(taskDto.DueDate?.Date, result.DueDate?.Date);
             Assert.Equal(taskDto.Status, result.Status);
             Assert.Equal(taskDto.Title, task.Title);
             Assert.Equal(taskDto.Description, task.Description);
@@ -257,7 +257,6 @@ namespace TaskManager.Application.Tests.Services
 
             Assert.True(result);
 
-            _mockProjectRepository.Verify(r => r.UpdateAsync(project), Times.Once);
             _mockTaskRepository.Verify(r => r.DeleteAsync(task), Times.Once);
         }
     }

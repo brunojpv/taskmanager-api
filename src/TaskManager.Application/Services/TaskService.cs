@@ -181,7 +181,12 @@ namespace TaskManager.Application.Services
                 });
             }
 
-            return _mapper.Map<TaskDTO>(task);
+            var taskDTO = _mapper.Map<TaskDTO>(task);
+
+            var comments = await _commentRepository.GetAllByTaskIdAsync(task.Id);
+            taskDTO.Comments = _mapper.Map<List<TaskCommentDTO>>(comments);
+
+            return taskDTO;
         }
 
         public async Task<bool> DeleteAsync(Guid id)

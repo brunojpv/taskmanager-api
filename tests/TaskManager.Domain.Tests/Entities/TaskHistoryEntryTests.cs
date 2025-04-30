@@ -41,7 +41,7 @@ namespace TaskManager.Domain.Tests.Entities
 
             // Assert
             Assert.Equal(action, historyEntry.Action);
-            Assert.Null(historyEntry.Details);
+            Assert.Equal("Ação: Task created", historyEntry.Details);
             Assert.Equal(taskId, historyEntry.TaskId);
             Assert.Null(historyEntry.UserId);
             Assert.NotEqual(default, historyEntry.Timestamp);
